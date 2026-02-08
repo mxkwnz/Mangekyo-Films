@@ -58,6 +58,20 @@ func (h *SessionHandler) GetMovieSessions(c *gin.Context) {
 	c.JSON(http.StatusOK, sessions)
 }
 
+func (h *SessionHandler) GetSession(c *gin.Context) {
+	sessionID, err := primitive.ObjectIDFromHex(c.Param("id"))
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "invalid session ID"})
+		return
+	}
+	session, err := h.sessionService.GetSessionByID(c.Request.Context(), sessionID)
+	if err != nil {
+		c.JSON(http.StatusNotFound, gin.H{"error": "session not found"})
+		return
+	}
+	c.JSON(http.StatusOK, session)
+}
+
 func (h *SessionHandler) DeleteSession(c *gin.Context) {
 	sessionID, err := primitive.ObjectIDFromHex(c.Param("id"))
 	if err != nil {

@@ -42,6 +42,20 @@ func (h *HallHandler) GetAllHalls(c *gin.Context) {
 	c.JSON(http.StatusOK, halls)
 }
 
+func (h *HallHandler) GetHall(c *gin.Context) {
+	id, err := primitive.ObjectIDFromHex(c.Param("id"))
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "invalid hall ID"})
+		return
+	}
+	hall, err := h.hallRepo.FindByID(c.Request.Context(), id)
+	if err != nil {
+		c.JSON(http.StatusNotFound, gin.H{"error": "hall not found"})
+		return
+	}
+	c.JSON(http.StatusOK, hall)
+}
+
 func (h *HallHandler) UpdateHall(c *gin.Context) {
 	id, err := primitive.ObjectIDFromHex(c.Param("id"))
 	if err != nil {

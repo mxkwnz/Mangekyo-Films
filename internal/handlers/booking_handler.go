@@ -99,3 +99,18 @@ func (h *BookingHandler) GetAllBookings(c *gin.Context) {
 
 	c.JSON(http.StatusOK, tickets)
 }
+
+// GetSessionBookedSeats returns only row/seat for public seat map (no auth).
+func (h *BookingHandler) GetSessionBookedSeats(c *gin.Context) {
+	sessionID, err := primitive.ObjectIDFromHex(c.Param("sessionId"))
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "invalid session ID"})
+		return
+	}
+	seats, err := h.bookingService.GetSessionBookedSeats(c.Request.Context(), sessionID)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+	c.JSON(http.StatusOK, seats)
+}
