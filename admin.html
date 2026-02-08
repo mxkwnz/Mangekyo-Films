@@ -1,0 +1,282 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Админ-панель — Кинотеатр</title>
+  <link rel="stylesheet" href="static/css/auth-modal.css">
+</head>
+<body>
+  <header>
+    <h1>Кинотеатр</h1>
+    <nav>
+      <a href="index.html">Афиша</a>
+      <a href="bookings.html">Мои брони</a>
+      <a href="admin.html">Админ</a>
+      <span id="user-span"></span>
+    </nav>
+  </header>
+  <main id="admin-main">
+    <div id="admin-forbidden" style="display:none;">
+      <h2>Доступ запрещён</h2>
+      <p>Эта страница доступна только администраторам.</p>
+      <a href="index.html">На главную</a>
+    </div>
+    <div id="admin-content" style="display:none;">
+      <h2>Админ-панель</h2>
+      <p id="admin-error" class="error-msg" style="display:none;"></p>
+
+      <section>
+        <h3>Залы</h3>
+        <form id="form-hall">
+          <input type="text" name="name" placeholder="Название зала" required />
+          <input type="text" name="location" placeholder="Локация" required />
+          <input type="number" name="total_rows" placeholder="Рядов" min="1" required />
+          <input type="number" name="seats_per_row" placeholder="Мест в ряду" min="1" required />
+          <button type="submit">Добавить зал</button>
+        </form>
+        <ul id="admin-halls"></ul>
+      </section>
+
+      <section>
+        <h3>Фильмы</h3>
+        <form id="form-movie">
+          <input type="text" name="name" placeholder="Название" required />
+          <input type="number" name="duration" placeholder="Длительность (мин)" min="1" required />
+          <input type="text" name="description" placeholder="Описание" />
+          <input type="text" name="poster_url" placeholder="URL постера" />
+          <input type="number" name="rating" placeholder="Рейтинг" step="0.1" min="0" max="10" />
+          <button type="submit">Добавить фильм</button>
+        </form>
+        <ul id="admin-movies"></ul>
+      </section>
+
+      <section>
+        <h3>Сеансы</h3>
+        <form id="form-session">
+          <input type="text" name="movie_id" placeholder="ID фильма" required />
+          <input type="text" name="hall_id" placeholder="ID зала" required />
+          <input type="datetime-local" name="start_time" required />
+          <input type="number" name="price" placeholder="Цена" min="0" step="0.01" required />
+          <button type="submit">Добавить сеанс</button>
+        </form>
+        <ul id="admin-sessions"></ul>
+      </section>
+
+      <section>
+        <h3>Все бронирования</h3>
+        <ul id="admin-bookings"></ul>
+      </section>
+    </div>
+  </main>
+  <script src="static/js/auth.js"></script>
+  <script>
+(function () {
+  var API_BASE = window.API_BASE || '/api';
+  var ADMIN_BASE = API_BASE + '/admin';
+
+  function authHeaders() {
+    return auth.getAuthHeaders();
+  }
+
+  function showError(msg) {
+    var el = document.getElementById('admin-error');
+    el.textContent = msg || '';
+    el.style.display = msg ? 'block' : 'none';
+  }
+
+  function updateNav() {
+    var span = document.getElementById('user-span');
+    if (!span) return;
+    if (auth.isLoggedIn()) {
+      var u = auth.getUser();
+      span.innerHTML = 'Привет, ' + (u.first_name || u.email) + ' | <button type="button" id="logout-btn">Выйти</button>';
+      document.getElementById('logout-btn').onclick = function () { auth.logout(); location.href = 'index.html'; };
+    } else {
+      span.innerHTML = '<a href="index.html">На главную</a>';
+    }
+  }
+
+  function loadHalls() {
+    fetch(ADMIN_BASE + '/halls', { headers: authHeaders() })
+      .then(function (r) { return r.json(); })
+      .then(function (data) {
+        var ul = document.getElementById('admin-halls');
+        ul.innerHTML = '';
+        (Array.isArray(data) ? data : []).forEach(function (h) {
+          var li = document.createElement('li');
+          li.innerHTML = (h.name || '') + ' — ' + (h.location || '') + ' (рядов: ' + (h.total_rows || 0) + ', мест в ряду: ' + (h.seats_per_row || 0) + ') <button type="button" class="del-hall" data-id="' + (h.id || '') + '">Удалить</button>';
+          ul.appendChild(li);
+        });
+        ul.querySelectorAll('.del-hall').forEach(function (btn) {
+          btn.onclick = function () {
+            var id = btn.getAttribute('data-id');
+            if (!id || !confirm('Удалить зал?')) return;
+            fetch(ADMIN_BASE + '/halls/' + id, { method: 'DELETE', headers: authHeaders() })
+              .then(function (r) { return r.json(); })
+              .then(function () { loadHalls(); })
+              .catch(function () { showError('Ошибка удаления'); });
+          };
+        });
+      })
+      .catch(function () { showError('Ошибка загрузки залов'); });
+  }
+
+  function loadMovies() {
+    fetch(API_BASE + '/movies')
+      .then(function (r) { return r.json(); })
+      .then(function (data) {
+        var ul = document.getElementById('admin-movies');
+        ul.innerHTML = '';
+        (Array.isArray(data) ? data : []).forEach(function (m) {
+          var li = document.createElement('li');
+          li.innerHTML = (m.name || '') + ' (' + (m.duration || 0) + ' мин) — ID: ' + (m.id || '') + ' <button type="button" class="del-movie" data-id="' + (m.id || '') + '">Удалить</button>';
+          ul.appendChild(li);
+        });
+        ul.querySelectorAll('.del-movie').forEach(function (btn) {
+          btn.onclick = function () {
+            var id = btn.getAttribute('data-id');
+            if (!id || !confirm('Удалить фильм?')) return;
+            fetch(ADMIN_BASE + '/movies/' + id, { method: 'DELETE', headers: authHeaders() })
+              .then(function (r) { return r.json(); })
+              .then(function () { loadMovies(); })
+              .catch(function () { showError('Ошибка удаления'); });
+          };
+        });
+      })
+      .catch(function () { showError('Ошибка загрузки фильмов'); });
+  }
+
+  function loadSessions() {
+    fetch(API_BASE + '/sessions/upcoming')
+      .then(function (r) { return r.json(); })
+      .then(function (data) {
+        var ul = document.getElementById('admin-sessions');
+        ul.innerHTML = '';
+        (Array.isArray(data) ? data : []).forEach(function (s) {
+          var start = s.start_time ? new Date(s.start_time).toLocaleString('ru-RU') : '';
+          var li = document.createElement('li');
+          li.innerHTML = 'ID: ' + (s.id || '') + ' — фильм: ' + (s.movie_id || '') + ', зал: ' + (s.hall_id || '') + ' — ' + start + ' <button type="button" class="del-session" data-id="' + (s.id || '') + '">Удалить</button>';
+          ul.appendChild(li);
+        });
+        ul.querySelectorAll('.del-session').forEach(function (btn) {
+          btn.onclick = function () {
+            var id = btn.getAttribute('data-id');
+            if (!id || !confirm('Удалить сеанс?')) return;
+            fetch(ADMIN_BASE + '/sessions/' + id, { method: 'DELETE', headers: authHeaders() })
+              .then(function (r) { return r.json(); })
+              .then(function () { loadSessions(); })
+              .catch(function () { showError('Ошибка удаления'); });
+          };
+        });
+      })
+      .catch(function () { showError('Ошибка загрузки сеансов'); });
+  }
+
+  function loadBookings() {
+    fetch(ADMIN_BASE + '/bookings', { headers: authHeaders() })
+      .then(function (r) { return r.json(); })
+      .then(function (data) {
+        var ul = document.getElementById('admin-bookings');
+        ul.innerHTML = '';
+        (Array.isArray(data) ? data : []).forEach(function (b) {
+          var li = document.createElement('li');
+          li.textContent = 'Сеанс: ' + (b.session_id || '') + ' — ряд ' + (b.row_number || '') + ', место ' + (b.seat_number || '') + ' — ' + (b.status || '');
+          ul.appendChild(li);
+        });
+      })
+      .catch(function () { showError('Ошибка загрузки бронирований'); });
+  }
+
+  function init() {
+    updateNav();
+    if (!auth.isLoggedIn() || !auth.isAdmin()) {
+      document.getElementById('admin-forbidden').style.display = 'block';
+      document.getElementById('admin-content').style.display = 'none';
+      return;
+    }
+    document.getElementById('admin-forbidden').style.display = 'none';
+    document.getElementById('admin-content').style.display = 'block';
+
+    loadHalls();
+    loadMovies();
+    loadSessions();
+    loadBookings();
+
+    document.getElementById('form-hall').onsubmit = function (e) {
+      e.preventDefault();
+      var f = this;
+      var payload = {
+        name: f.name.value.trim(),
+        location: f.location.value.trim(),
+        total_rows: parseInt(f.total_rows.value, 10) || 0,
+        seats_per_row: parseInt(f.seats_per_row.value, 10) || 0
+      };
+      fetch(ADMIN_BASE + '/halls', {
+        method: 'POST',
+        headers: authHeaders(),
+        body: JSON.stringify(payload)
+      })
+        .then(function (r) { return r.json().then(function (d) { return { ok: r.ok, data: d }; }); })
+        .then(function (res) {
+          if (res.ok) { f.reset(); loadHalls(); showError(''); } else showError(res.data.error || 'Ошибка');
+        })
+        .catch(function () { showError('Ошибка сети'); });
+    };
+
+    document.getElementById('form-movie').onsubmit = function (e) {
+      e.preventDefault();
+      var f = this;
+      var payload = {
+        name: f.name.value.trim(),
+        duration: parseInt(f.duration.value, 10) || 0,
+        description: (f.description && f.description.value) ? f.description.value.trim() : '',
+        poster_url: (f.poster_url && f.poster_url.value) ? f.poster_url.value.trim() : '',
+        rating: parseFloat(f.rating.value) || 0
+      };
+      fetch(ADMIN_BASE + '/movies', {
+        method: 'POST',
+        headers: authHeaders(),
+        body: JSON.stringify(payload)
+      })
+        .then(function (r) { return r.json().then(function (d) { return { ok: r.ok, data: d }; }); })
+        .then(function (res) {
+          if (res.ok) { f.reset(); loadMovies(); showError(''); } else showError(res.data.error || 'Ошибка');
+        })
+        .catch(function () { showError('Ошибка сети'); });
+    };
+
+    document.getElementById('form-session').onsubmit = function (e) {
+      e.preventDefault();
+      var f = this;
+      var startStr = f.start_time.value;
+      if (!startStr) { showError('Укажите время'); return; }
+      var start = new Date(startStr);
+      var payload = {
+        movie_id: f.movie_id.value.trim(),
+        hall_id: f.hall_id.value.trim(),
+        start_time: start.toISOString(),
+        price: parseFloat(f.price.value) || 0
+      };
+      fetch(ADMIN_BASE + '/sessions', {
+        method: 'POST',
+        headers: authHeaders(),
+        body: JSON.stringify(payload)
+      })
+        .then(function (r) { return r.json().then(function (d) { return { ok: r.ok, data: d }; }); })
+        .then(function (res) {
+          if (res.ok) { f.reset(); loadSessions(); showError(''); } else showError(res.data.error || 'Ошибка');
+        })
+        .catch(function () { showError('Ошибка сети'); });
+    };
+  }
+
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', init);
+  } else {
+    init();
+  }
+})();
+  </script>
+</body>
+</html>

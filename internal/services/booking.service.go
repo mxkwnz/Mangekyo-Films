@@ -153,3 +153,17 @@ func (s *BookingService) GetSessionTickets(ctx context.Context, sessionID primit
 func (s *BookingService) GetAllBookings(ctx context.Context) ([]models.Ticket, error) {
 	return s.ticketRepo.GetAll(ctx)
 }
+
+// GetSessionBookedSeats returns row/seat pairs for occupied seats (for public seat map).
+func (s *BookingService) GetSessionBookedSeats(ctx context.Context, sessionID primitive.ObjectID) ([]struct{ RowNumber int `json:"row_number"`; SeatNumber int `json:"seat_number"` }, error) {
+	tickets, err := s.ticketRepo.GetBySession(ctx, sessionID)
+	if err != nil {
+		return nil, err
+	}
+	out := make([]struct{ RowNumber int `json:"row_number"`; SeatNumber int `json:"seat_number"` }, len(tickets))
+	for i, t := range tickets {
+		out[i].RowNumber = t.RowNumber
+		out[i].SeatNumber = t.SeatNumber
+	}
+	return out, nil
+}

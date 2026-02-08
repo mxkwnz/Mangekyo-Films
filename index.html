@@ -1,10 +1,59 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="ru">
 <head>
   <meta charset="UTF-8">
-  <title>$Title$</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Кинотеатр</title>
+  <link rel="stylesheet" href="static/css/auth-modal.css">
 </head>
 <body>
-$END$
+  <header>
+    <h1>Кинотеатр</h1>
+    <nav>
+      <a href="index.html">Афиша</a>
+      <a href="bookings.html" id="nav-bookings" style="display:none;">Мои брони</a>
+      <a href="admin.html" id="nav-admin" style="display:none;">Админ</a>
+      <span id="user-span"></span>
+    </nav>
+  </header>
+  <main>
+    <p>Афиша и рекомендации — здесь будут фильмы. Гость может смотреть афишу; для бронирования нужен вход. Покупатель видит «Мои брони»; админ — ещё и панель управления.</p>
+    <p>
+      <button type="button" id="open-session-btn">Перейти к сеансу (пример)</button>
+      — или откройте <a href="session.html?sessionId=ПОДСТАВЬТЕ_ID_СЕАНСА">session.html?sessionId=...</a> для выбора места.
+    </p>
+  </main>
+  <script src="static/js/auth.js"></script>
+  <script>
+    (function () {
+      function updateNav() {
+        var span = document.getElementById('user-span');
+        var navBookings = document.getElementById('nav-bookings');
+        var navAdmin = document.getElementById('nav-admin');
+        if (navBookings) navBookings.style.display = auth.isCustomer() ? '' : 'none';
+        if (navAdmin) navAdmin.style.display = auth.isAdmin() ? '' : 'none';
+        if (!span) return;
+        if (auth.isLoggedIn()) {
+          var u = auth.getUser();
+          span.innerHTML = 'Привет, ' + (u.first_name || u.email) + ' | <button type="button" id="logout-btn">Выйти</button>';
+          var btn = document.getElementById('logout-btn');
+          if (btn) btn.onclick = function () { auth.logout(); updateNav(); };
+        } else {
+          span.innerHTML = '<button type="button" id="login-btn">Вход / Регистрация</button>';
+          var loginBtn = document.getElementById('login-btn');
+          if (loginBtn) loginBtn.onclick = function () { openAuthModal(); };
+        }
+      }
+      document.getElementById('open-session-btn').onclick = function () {
+        var sid = prompt('Введите ID сеанса (из API):', '');
+        if (sid) location.href = 'session.html?sessionId=' + encodeURIComponent(sid.trim());
+      };
+      if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', updateNav);
+      } else {
+        updateNav();
+      }
+    })();
+  </script>
 </body>
 </html>

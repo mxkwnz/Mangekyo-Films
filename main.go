@@ -1,28 +1,64 @@
 package main
 
 import (
+	"cinema-system/internal/config"
 	"cinema-system/internal/handlers"
 	"cinema-system/internal/repositories"
 	"cinema-system/internal/routes"
 	"cinema-system/internal/services"
 	"log"
-	"net/http"
+	"os"
 )
 
 func main() {
-	movieRepo := repositories.NewMovieRepo()
-	sessionRepo := repositories.NewSessionRepo()
-	ticketRepo := repositories.NewTicketRepo()
+	mongoURI := os.Getenv("MONGO_URI")
+	if mongoURI == "" {
+		mongoURI = "mongodb://localhost:27017"
+	}
 
-	worker := services.NewBookingWorker()
-	worker.Start()
+	db, err := config.NewDatabase(mongoURI, "cinema_db")
+	if err != nil {
+		log.Fatal("Failed to connect to database:", err)
+	}
+	defer db.Disconnect()
 
-	movieHandler := handlers.NewMovieHandler(movieRepo)
-	sessionHandler := handlers.NewSessionHandler(sessionRepo)
-	ticketHandler := handlers.NewTicketHandler(ticketRepo, worker)
+	userRepo := repositories.NewUserRepository(db.Database)
+	movieRepo := repositories.NewMovieRepository(db.Database)
+	genreRepo := repositories.NewGenreRepository(db.Database)
+	hallRepo := repositories.NewHallRepository(db.Database)
+	sessionRepo := repositories.NewSessionRepository(db.Database)
+	ticketRepo := repositories.NewTicketRepository(db.Database)
+	reviewRepo := repositories.NewReviewRepository(db.Database)
 
-	routes.RegisterRoutes(movieHandler, ticketHandler, sessionHandler)
+	authService := services.NewAuthService(userRepo)
+	movieService := services.NewMovieService(movieRepo, genreRepo)
+	sessionService := services.NewSessionService(sessionRepo, hallRepo, movieRepo)
+	bookingService := services.NewBookingService(ticketRepo, sessionRepo, userRepo, hallRepo)
+	reviewService := services.NewReviewService(reviewRepo, movieRepo, userRepo)
 
-	log.Println("Cinema backend running at :8080")
-	http.ListenAndServe(":8080", nil)
+	authHandler := handlers.NewAuthHandler(authService)
+	movieHandler := handlers.NewMovieHandler(movieService)
+	sessionHandler := handlers.NewSessionHandler(sessionService)
+	bookingHandler := handlers.NewBookingHandler(bookingService)
+	reviewHandler := handlers.NewReviewHandler(reviewService)
+	hallHandler := handlers.NewHallHandler(hallRepo)
+
+	router := routes.NewRouter(
+		authHandler,
+		movieHandler,
+		sessionHandler,
+		bookingHandler,
+		reviewHandler,
+		hallHandler,
+	)
+
+	port := os.Getenv("PORT")
+	if port == "" {
+		port = "8080"
+	}
+
+	log.Printf("Cinema System Server starting on port %s", port)
+	if err := router.Setup().Run(":" + port); err != nil {
+		log.Fatal("Failed to start server:", err)
+	}
 }
