@@ -1,9 +1,11 @@
 package models
 
+import "go.mongodb.org/mongo-driver/bson/primitive"
+
 type Hall struct {
-	ID          int    `json:"id"`
-	Name        string `json:"name"`
-	Location    string `json:"location"`
-	TotalRows   int    `json:"total_rows"`
-	SeatsPerRow int    `json:"seats_per_row"`
+	ID          primitive.ObjectID `json:"id" bson:"_id,omitempty"`
+	Name        string             `json:"name" bson:"name"`
+	Location    string             `json:"location" bson:"location"`
+	TotalRows   int                `json:"total_rows" bson:"total_rows"`
+	SeatsPerRow int                `json:"seats_per_row" bson:"seats_per_row"`
 }

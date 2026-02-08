@@ -1,12 +1,15 @@
 package models
 
-import "time"
+import (
+	"go.mongodb.org/mongo-driver/bson/primitive"
+	"time"
+)
 
 type Session struct {
-	ID        int       `json:"id"`
-	MovieID   int       `json:"movie_id"`
-	HallID    int       `json:"hall_id"`
-	StartTime time.Time `json:"start_time"`
-	EndTime   time.Time `json:"end_time"`
-	Price     int       `json:"price"`
+	ID        primitive.ObjectID `json:"id" bson:"_id,omitempty"`
+	MovieID   primitive.ObjectID `json:"movie_id" bson:"movie_id"`
+	HallID    primitive.ObjectID `json:"hall_id" bson:"hall_id"`
+	StartTime time.Time          `json:"start_time" bson:"start_time"`
+	EndTime   time.Time          `json:"end_time" bson:"end_time"`
+	Price     float64            `json:"price" bson:"price"`
 }
