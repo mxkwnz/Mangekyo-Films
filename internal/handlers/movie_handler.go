@@ -2,35 +2,93 @@ package handlers
 
 import (
 	"cinema-system/internal/models"
-	"cinema-system/internal/repositories"
-	"encoding/json"
+	"cinema-system/internal/services"
 	"net/http"
+
+	"github.com/gin-gonic/gin"
+	"go.mongodb.org/mongo-driver/bson/primitive"
 )
 
 type MovieHandler struct {
-	repo *repositories.MovieRepo
+	movieService *services.MovieService
 }
 
-func NewMovieHandler(repo *repositories.MovieRepo) *MovieHandler {
-	return &MovieHandler{repo: repo}
+func NewMovieHandler(movieService *services.MovieService) *MovieHandler {
+	return &MovieHandler{movieService: movieService}
 }
 
-func (h *MovieHandler) HandleMovies(w http.ResponseWriter, r *http.Request) {
-	w.Header().Set("Content-Type", "application/json")
+func (h *MovieHandler) GetAllMovies(c *gin.Context) {
+	movies, err := h.movieService.GetAllMovies(c.Request.Context())
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+	c.JSON(http.StatusOK, movies)
+}
 
-	if r.Method == "GET" {
-		json.NewEncoder(w).Encode(h.repo.GetAll())
+func (h *MovieHandler) GetMovie(c *gin.Context) {
+	id, err := primitive.ObjectIDFromHex(c.Param("id"))
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "invalid movie ID"})
 		return
 	}
 
-	if r.Method == "POST" {
-		var movie models.Movie
-		json.NewDecoder(r.Body).Decode(&movie)
-
-		created := h.repo.Create(movie)
-		json.NewEncoder(w).Encode(created)
+	movie, err := h.movieService.GetMovieByID(c.Request.Context(), id)
+	if err != nil {
+		c.JSON(http.StatusNotFound, gin.H{"error": "movie not found"})
 		return
 	}
 
-	w.WriteHeader(http.StatusMethodNotAllowed)
+	c.JSON(http.StatusOK, movie)
+}
+
+func (h *MovieHandler) CreateMovie(c *gin.Context) {
+	var movie models.Movie
+	if err := c.ShouldBindJSON(&movie); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+
+	if err := h.movieService.CreateMovie(c.Request.Context(), &movie); err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+
+	c.JSON(http.StatusCreated, movie)
+}
+
+func (h *MovieHandler) UpdateMovie(c *gin.Context) {
+	id, err := primitive.ObjectIDFromHex(c.Param("id"))
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "invalid movie ID"})
+		return
+	}
+
+	var movie models.Movie
+	if err := c.ShouldBindJSON(&movie); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+
+	if err := h.movieService.UpdateMovie(c.Request.Context(), id, &movie); err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{"message": "movie updated successfully"})
+}
+
+func (h *MovieHandler) DeleteMovie(c *gin.Context) {
+	id, err := primitive.ObjectIDFromHex(c.Param("id"))
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "invalid movie ID"})
+		return
+	}
+
+	if err := h.movieService.DeleteMovie(c.Request.Context(), id); err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{"message": "movie deleted successfully"})
 }
