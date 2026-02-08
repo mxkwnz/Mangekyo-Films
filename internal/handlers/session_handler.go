@@ -2,35 +2,73 @@ package handlers
 
 import (
 	"cinema-system/internal/models"
-	"cinema-system/internal/repositories"
-	"encoding/json"
+	"cinema-system/internal/services"
 	"net/http"
+
+	"github.com/gin-gonic/gin"
+	"go.mongodb.org/mongo-driver/bson/primitive"
 )
 
 type SessionHandler struct {
-	repo *repositories.SessionRepo
+	sessionService *services.SessionService
 }
 
-func NewSessionHandler(repo *repositories.SessionRepo) *SessionHandler {
-	return &SessionHandler{repo: repo}
+func NewSessionHandler(sessionService *services.SessionService) *SessionHandler {
+	return &SessionHandler{sessionService: sessionService}
 }
 
-func (h *SessionHandler) HandleSessions(w http.ResponseWriter, r *http.Request) {
-	w.Header().Set("Content-Type", "application/json")
-
-	if r.Method == "GET" {
-		json.NewEncoder(w).Encode(h.repo.GetAll())
+func (h *SessionHandler) CreateSession(c *gin.Context) {
+	var session models.Session
+	if err := c.ShouldBindJSON(&session); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
 
-	if r.Method == "POST" {
-		var session models.Session
-		json.NewDecoder(r.Body).Decode(&session)
-
-		created := h.repo.Create(session)
-		json.NewEncoder(w).Encode(created)
+	if err := h.sessionService.CreateSession(c.Request.Context(), &session); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
 
-	w.WriteHeader(http.StatusMethodNotAllowed)
+	c.JSON(http.StatusCreated, session)
+}
+
+func (h *SessionHandler) GetUpcomingSessions(c *gin.Context) {
+	sessions, err := h.sessionService.GetUpcomingSessions(c.Request.Context())
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+
+	c.JSON(http.StatusOK, sessions)
+}
+
+func (h *SessionHandler) GetMovieSessions(c *gin.Context) {
+	movieID, err := primitive.ObjectIDFromHex(c.Param("movieId"))
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "invalid movie ID"})
+		return
+	}
+
+	sessions, err := h.sessionService.GetSessionsByMovie(c.Request.Context(), movieID)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+
+	c.JSON(http.StatusOK, sessions)
+}
+
+func (h *SessionHandler) DeleteSession(c *gin.Context) {
+	sessionID, err := primitive.ObjectIDFromHex(c.Param("id"))
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "invalid session ID"})
+		return
+	}
+
+	if err := h.sessionService.DeleteSession(c.Request.Context(), sessionID); err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{"message": "session deleted successfully"})
 }
