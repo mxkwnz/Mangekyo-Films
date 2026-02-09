@@ -8,19 +8,32 @@ import (
 	"cinema-system/internal/services"
 	"log"
 	"os"
+
+	"github.com/joho/godotenv"
 )
 
 func main() {
+	if err := godotenv.Load(); err != nil {
+		log.Println("Warning: .env file not found, using environment variables")
+	}
+
 	mongoURI := os.Getenv("MONGO_URI")
 	if mongoURI == "" {
 		mongoURI = "mongodb://localhost:27017"
 	}
 
-	db, err := config.NewDatabase(mongoURI, "cinema_db")
+	dbName := os.Getenv("MONGO_DATABASE")
+	if dbName == "" {
+		dbName = "cinema_db"
+	}
+
+	db, err := config.NewDatabase(mongoURI, dbName)
 	if err != nil {
 		log.Fatal("Failed to connect to database:", err)
 	}
 	defer db.Disconnect()
+
+	log.Println("Successfully connected to MongoDB!")
 
 	userRepo := repositories.NewUserRepository(db.Database)
 	movieRepo := repositories.NewMovieRepository(db.Database)
@@ -57,7 +70,7 @@ func main() {
 		port = "8080"
 	}
 
-	log.Printf("Cinema System Server starting on port %s", port)
+	log.Printf("🎬 Cinema System Server starting on port %s", port)
 	if err := router.Setup().Run(":" + port); err != nil {
 		log.Fatal("Failed to start server:", err)
 	}
