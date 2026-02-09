@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Profile — Cinema</title>
+  <link rel="stylesheet" href="static/css/main.css">
+  <link rel="stylesheet" href="static/css/auth-modal.css">
+</head>
+<body>
+  <header class="site-header">
+    <div class="site-header-inner">
+      <div class="site-header-title">Mangekyo Cinema</div>
+      <nav class="site-nav">
+        <div class="site-nav-primary">
+          <a href="index.html">Home</a>
+          <a href="profile.html">Profile</a>
+          <a href="admin.html" id="nav-admin" style="display:none;">Admin</a>
+        </div>
+        <span id="user-span" class="site-nav-user"></span>
+      </nav>
+    </div>
+  </header>
+  <main id="profile-main">
+    <div class="page-shell">
+      <section class="page-heading">
+        <h1>Profile</h1>
+        <p>View your details, bookings, and access admin tools if available.</p>
+      </section>
+      <div id="profile-guest" style="display:none;">
+        <p>Log in to see your profile and bookings.</p>
+        <button type="button" id="profile-login-btn" class="btn btn-primary">Login / Register</button>
+      </div>
+      <div id="profile-content" style="display:none;">
+        <p id="profile-info"></p>
+        <p><a href="admin.html" id="profile-admin-link" style="display:none;">Go to Admin panel</a></p>
+        <h3>My bookings</h3>
+        <p id="bookings-empty" style="display:none;">You have no bookings yet.</p>
+        <ul id="bookings-list"></ul>
+      </div>
+      <p id="profile-error" class="error-msg" style="display:none;"></p>
+    </div>
+  </main>
+  <script src="static/js/auth.js"></script>
+  <script src="static/js/api.js"></script>
+  <script>
+(function () {
+  function updateNav() {
+    var span = document.getElementById('user-span');
+    var navAdmin = document.getElementById('nav-admin');
+    if (window.auth && auth.isAdmin && navAdmin) navAdmin.style.display = auth.isAdmin() ? '' : 'none';
+    if (!span) return;
+    if (window.auth && auth.isLoggedIn && auth.isLoggedIn()) {
+      var u = auth.getUser();
+      span.innerHTML = 'Hi, ' + (u.first_name || u.email) + ' | <button type="button" id="logout-btn" class="btn btn-ghost">Log out</button>';
+      var btn = document.getElementById('logout-btn');
+      if (btn) btn.onclick = function () { auth.logout(); location.href = 'index.html'; };
+    } else {
+      span.innerHTML = '<button type="button" id="login-btn" class="btn btn-primary">Login / Register</button>';
+      var loginBtn = document.getElementById('login-btn');
+      if (loginBtn) loginBtn.onclick = function () { if (window.openAuthModal) openAuthModal({ onSuccess: load }); };
+    }
+  }
+
+  function showGuest() {
+    document.getElementById('profile-guest').style.display = 'block';
+    document.getElementById('profile-content').style.display = 'none';
+    document.getElementById('profile-login-btn').onclick = function () {
+      openAuthModal({ onSuccess: function () { load(); updateNav(); } });
+    };
+  }
+
+  function showError(msg) {
+    var el = document.getElementById('profile-error');
+    el.textContent = msg || '';
+    el.style.display = msg ? 'block' : 'none';
+  }
+
+  function load() {
+    if (!(window.auth && auth.isLoggedIn && auth.isLoggedIn())) {
+      showGuest();
+      updateNav();
+      return;
+    }
+    document.getElementById('profile-guest').style.display = 'none';
+    document.getElementById('profile-content').style.display = 'block';
+    showError('');
+
+    var u = window.auth && auth.getUser ? auth.getUser() : {};
+    document.getElementById('profile-info').textContent =
+      'Name: ' + (u.first_name || '') + ' ' + (u.last_name || '') + ' | Email: ' + (u.email || '') + ' | Role: ' + (u.role || 'USER');
+    document.getElementById('profile-admin-link').style.display = (window.auth && auth.isAdmin && auth.isAdmin()) ? '' : 'none';
+
+    window.api.fetchMyBookings()
+      .then(function (data) {
+        var list = document.getElementById('bookings-list');
+        var empty = document.getElementById('bookings-empty');
+        list.innerHTML = '';
+        if (!Array.isArray(data) || data.length === 0) {
+          empty.style.display = 'block';
+          return;
+        }
+        empty.style.display = 'none';
+        data.forEach(function (ticket) {
+          var li = document.createElement('li');
+          li.dataset.id = ticket.id;
+          li.innerHTML =
+            'Session: ' + (ticket.session_id || '') + ' — row ' + (ticket.row_number || '') + ', seat ' + (ticket.seat_number || '') +
+            ' — ' + (ticket.status || '') +
+            ' <button type="button" class="cancel-ticket-btn" data-id="' + (ticket.id || '') + '">Cancel</button>';
+          list.appendChild(li);
+        });
+        list.querySelectorAll('.cancel-ticket-btn').forEach(function (btn) {
+          btn.onclick = function () {
+            var id = btn.getAttribute('data-id');
+            if (!id) return;
+            if (!confirm('Cancel this booking?')) return;
+            window.api.cancelBooking(id)
+              .then(function () { load(); })
+              .catch(function (err) { showError((err && err.message) || 'Cancel failed'); });
+          };
+        });
+      })
+      .catch(function () {
+        showError('Failed to load bookings.');
+      });
+  }
+
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', function () {
+      updateNav();
+      load();
+    });
+  } else {
+    updateNav();
+    load();
+  }
+})();
+  </script>
+</body>
+</html>

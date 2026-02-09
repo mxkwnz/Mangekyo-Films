@@ -1,70 +1,70 @@
 <!DOCTYPE html>
-<html lang="ru">
+<html lang="en">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Админ-панель — Кинотеатр</title>
+  <title>Admin — Cinema</title>
   <link rel="stylesheet" href="static/css/auth-modal.css">
 </head>
 <body>
   <header>
-    <h1>Кинотеатр</h1>
+    <h1>Cinema</h1>
     <nav>
-      <a href="index.html">Афиша</a>
-      <a href="bookings.html">Мои брони</a>
-      <a href="admin.html">Админ</a>
+      <a href="index.html">Home</a>
+      <a href="profile.html">Profile</a>
+      <a href="admin.html">Admin</a>
       <span id="user-span"></span>
     </nav>
   </header>
   <main id="admin-main">
     <div id="admin-forbidden" style="display:none;">
-      <h2>Доступ запрещён</h2>
-      <p>Эта страница доступна только администраторам.</p>
-      <a href="index.html">На главную</a>
+      <h2>Access denied</h2>
+      <p>This page is for administrators only.</p>
+      <a href="index.html">Back to Home</a>
     </div>
     <div id="admin-content" style="display:none;">
-      <h2>Админ-панель</h2>
+      <h2>Admin panel</h2>
       <p id="admin-error" class="error-msg" style="display:none;"></p>
 
       <section>
-        <h3>Залы</h3>
+        <h3>Halls</h3>
         <form id="form-hall">
-          <input type="text" name="name" placeholder="Название зала" required />
-          <input type="text" name="location" placeholder="Локация" required />
-          <input type="number" name="total_rows" placeholder="Рядов" min="1" required />
-          <input type="number" name="seats_per_row" placeholder="Мест в ряду" min="1" required />
-          <button type="submit">Добавить зал</button>
+          <input type="text" name="name" placeholder="Hall name" required />
+          <input type="text" name="location" placeholder="Location" required />
+          <input type="number" name="total_rows" placeholder="Rows" min="1" required />
+          <input type="number" name="seats_per_row" placeholder="Seats per row" min="1" required />
+          <button type="submit">Add hall</button>
         </form>
         <ul id="admin-halls"></ul>
       </section>
 
       <section>
-        <h3>Фильмы</h3>
+        <h3>Movies</h3>
         <form id="form-movie">
-          <input type="text" name="name" placeholder="Название" required />
-          <input type="number" name="duration" placeholder="Длительность (мин)" min="1" required />
-          <input type="text" name="description" placeholder="Описание" />
-          <input type="text" name="poster_url" placeholder="URL постера" />
-          <input type="number" name="rating" placeholder="Рейтинг" step="0.1" min="0" max="10" />
-          <button type="submit">Добавить фильм</button>
+          <input type="text" name="name" placeholder="Title" required />
+          <input type="number" name="duration" placeholder="Duration (min)" min="1" required />
+          <input type="text" name="description" placeholder="Description" />
+          <input type="text" name="poster_url" placeholder="Poster URL" />
+          <input type="number" name="rating" placeholder="Rating" step="0.1" min="0" max="10" />
+          <button type="submit">Add movie</button>
         </form>
         <ul id="admin-movies"></ul>
       </section>
 
       <section>
-        <h3>Сеансы</h3>
+        <h3>Sessions</h3>
         <form id="form-session">
-          <input type="text" name="movie_id" placeholder="ID фильма" required />
-          <input type="text" name="hall_id" placeholder="ID зала" required />
+          <input type="text" name="movie_id" placeholder="Movie ID" required />
+          <input type="text" name="hall_id" placeholder="Hall ID" required />
           <input type="datetime-local" name="start_time" required />
-          <input type="number" name="price" placeholder="Цена" min="0" step="0.01" required />
-          <button type="submit">Добавить сеанс</button>
+          <input type="number" name="price" placeholder="Price" min="0" step="0.01" required />
+          <button type="submit">Add session</button>
         </form>
         <ul id="admin-sessions"></ul>
       </section>
 
       <section>
-        <h3>Все бронирования</h3>
+        <h3>All bookings</h3>
         <ul id="admin-bookings"></ul>
       </section>
     </div>
@@ -90,10 +90,10 @@
     if (!span) return;
     if (auth.isLoggedIn()) {
       var u = auth.getUser();
-      span.innerHTML = 'Привет, ' + (u.first_name || u.email) + ' | <button type="button" id="logout-btn">Выйти</button>';
+      span.innerHTML = 'Hi, ' + (u.first_name || u.email) + ' | <button type="button" id="logout-btn">Log out</button>';
       document.getElementById('logout-btn').onclick = function () { auth.logout(); location.href = 'index.html'; };
     } else {
-      span.innerHTML = '<a href="index.html">На главную</a>';
+      span.innerHTML = '<a href="index.html">Back to Home</a>';
     }
   }
 
@@ -105,21 +105,21 @@
         ul.innerHTML = '';
         (Array.isArray(data) ? data : []).forEach(function (h) {
           var li = document.createElement('li');
-          li.innerHTML = (h.name || '') + ' — ' + (h.location || '') + ' (рядов: ' + (h.total_rows || 0) + ', мест в ряду: ' + (h.seats_per_row || 0) + ') <button type="button" class="del-hall" data-id="' + (h.id || '') + '">Удалить</button>';
+          li.innerHTML = (h.name || '') + ' — ' + (h.location || '') + ' (rows: ' + (h.total_rows || 0) + ', seats/row: ' + (h.seats_per_row || 0) + ') <button type="button" class="del-hall" data-id="' + (h.id || '') + '">Delete</button>';
           ul.appendChild(li);
         });
         ul.querySelectorAll('.del-hall').forEach(function (btn) {
           btn.onclick = function () {
             var id = btn.getAttribute('data-id');
-            if (!id || !confirm('Удалить зал?')) return;
+            if (!id || !confirm('Delete this hall?')) return;
             fetch(ADMIN_BASE + '/halls/' + id, { method: 'DELETE', headers: authHeaders() })
               .then(function (r) { return r.json(); })
               .then(function () { loadHalls(); })
-              .catch(function () { showError('Ошибка удаления'); });
+              .catch(function () { showError('Delete failed'); });
           };
         });
       })
-      .catch(function () { showError('Ошибка загрузки залов'); });
+      .catch(function () { showError('Failed to load halls'); });
   }
 
   function loadMovies() {
@@ -130,21 +130,21 @@
         ul.innerHTML = '';
         (Array.isArray(data) ? data : []).forEach(function (m) {
           var li = document.createElement('li');
-          li.innerHTML = (m.name || '') + ' (' + (m.duration || 0) + ' мин) — ID: ' + (m.id || '') + ' <button type="button" class="del-movie" data-id="' + (m.id || '') + '">Удалить</button>';
+          li.innerHTML = (m.name || '') + ' (' + (m.duration || 0) + ' min) — ID: ' + (m.id || '') + ' <button type="button" class="del-movie" data-id="' + (m.id || '') + '">Delete</button>';
           ul.appendChild(li);
         });
         ul.querySelectorAll('.del-movie').forEach(function (btn) {
           btn.onclick = function () {
             var id = btn.getAttribute('data-id');
-            if (!id || !confirm('Удалить фильм?')) return;
+            if (!id || !confirm('Delete this movie?')) return;
             fetch(ADMIN_BASE + '/movies/' + id, { method: 'DELETE', headers: authHeaders() })
               .then(function (r) { return r.json(); })
               .then(function () { loadMovies(); })
-              .catch(function () { showError('Ошибка удаления'); });
+              .catch(function () { showError('Delete failed'); });
           };
         });
       })
-      .catch(function () { showError('Ошибка загрузки фильмов'); });
+      .catch(function () { showError('Failed to load movies'); });
   }
 
   function loadSessions() {
@@ -154,23 +154,23 @@
         var ul = document.getElementById('admin-sessions');
         ul.innerHTML = '';
         (Array.isArray(data) ? data : []).forEach(function (s) {
-          var start = s.start_time ? new Date(s.start_time).toLocaleString('ru-RU') : '';
+          var start = s.start_time ? new Date(s.start_time).toLocaleString() : '';
           var li = document.createElement('li');
-          li.innerHTML = 'ID: ' + (s.id || '') + ' — фильм: ' + (s.movie_id || '') + ', зал: ' + (s.hall_id || '') + ' — ' + start + ' <button type="button" class="del-session" data-id="' + (s.id || '') + '">Удалить</button>';
+          li.innerHTML = 'ID: ' + (s.id || '') + ' — movie: ' + (s.movie_id || '') + ', hall: ' + (s.hall_id || '') + ' — ' + start + ' <button type="button" class="del-session" data-id="' + (s.id || '') + '">Delete</button>';
           ul.appendChild(li);
         });
         ul.querySelectorAll('.del-session').forEach(function (btn) {
           btn.onclick = function () {
             var id = btn.getAttribute('data-id');
-            if (!id || !confirm('Удалить сеанс?')) return;
+            if (!id || !confirm('Delete this session?')) return;
             fetch(ADMIN_BASE + '/sessions/' + id, { method: 'DELETE', headers: authHeaders() })
               .then(function (r) { return r.json(); })
               .then(function () { loadSessions(); })
-              .catch(function () { showError('Ошибка удаления'); });
+              .catch(function () { showError('Delete failed'); });
           };
         });
       })
-      .catch(function () { showError('Ошибка загрузки сеансов'); });
+      .catch(function () { showError('Failed to load sessions'); });
   }
 
   function loadBookings() {
@@ -181,18 +181,17 @@
         ul.innerHTML = '';
         (Array.isArray(data) ? data : []).forEach(function (b) {
           var li = document.createElement('li');
-          li.textContent = 'Сеанс: ' + (b.session_id || '') + ' — ряд ' + (b.row_number || '') + ', место ' + (b.seat_number || '') + ' — ' + (b.status || '');
+          li.textContent = 'Session: ' + (b.session_id || '') + ' — row ' + (b.row_number || '') + ', seat ' + (b.seat_number || '') + ' — ' + (b.status || '');
           ul.appendChild(li);
         });
       })
-      .catch(function () { showError('Ошибка загрузки бронирований'); });
+      .catch(function () { showError('Failed to load bookings'); });
   }
 
   function init() {
     updateNav();
     if (!auth.isLoggedIn() || !auth.isAdmin()) {
-      document.getElementById('admin-forbidden').style.display = 'block';
-      document.getElementById('admin-content').style.display = 'none';
+      location.replace('index.html');
       return;
     }
     document.getElementById('admin-forbidden').style.display = 'none';
@@ -219,9 +218,9 @@
       })
         .then(function (r) { return r.json().then(function (d) { return { ok: r.ok, data: d }; }); })
         .then(function (res) {
-          if (res.ok) { f.reset(); loadHalls(); showError(''); } else showError(res.data.error || 'Ошибка');
+          if (res.ok) { f.reset(); loadHalls(); showError(''); } else showError(res.data.error || 'Error');
         })
-        .catch(function () { showError('Ошибка сети'); });
+        .catch(function () { showError('Network error'); });
     };
 
     document.getElementById('form-movie').onsubmit = function (e) {
@@ -241,16 +240,16 @@
       })
         .then(function (r) { return r.json().then(function (d) { return { ok: r.ok, data: d }; }); })
         .then(function (res) {
-          if (res.ok) { f.reset(); loadMovies(); showError(''); } else showError(res.data.error || 'Ошибка');
+          if (res.ok) { f.reset(); loadMovies(); showError(''); } else showError(res.data.error || 'Error');
         })
-        .catch(function () { showError('Ошибка сети'); });
+        .catch(function () { showError('Network error'); });
     };
 
     document.getElementById('form-session').onsubmit = function (e) {
       e.preventDefault();
       var f = this;
       var startStr = f.start_time.value;
-      if (!startStr) { showError('Укажите время'); return; }
+      if (!startStr) { showError('Enter date and time'); return; }
       var start = new Date(startStr);
       var payload = {
         movie_id: f.movie_id.value.trim(),
@@ -265,9 +264,9 @@
       })
         .then(function (r) { return r.json().then(function (d) { return { ok: r.ok, data: d }; }); })
         .then(function (res) {
-          if (res.ok) { f.reset(); loadSessions(); showError(''); } else showError(res.data.error || 'Ошибка');
+          if (res.ok) { f.reset(); loadSessions(); showError(''); } else showError(res.data.error || 'Error');
         })
-        .catch(function () { showError('Ошибка сети'); });
+        .catch(function () { showError('Network error'); });
     };
   }
 

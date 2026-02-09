@@ -13,7 +13,7 @@ type GenreRepository struct {
 }
 
 func NewGenreRepository(db *mongo.Database) *GenreRepository {
-	return &GenRepository{
+	return &GenreRepository{
 		collection: db.Collection("genres"),
 	}
 }

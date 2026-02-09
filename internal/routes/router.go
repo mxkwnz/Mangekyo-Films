@@ -36,7 +36,8 @@ func NewRouter(
 
 func (r *Router) Setup() *gin.Engine {
 	router := gin.Default()
-
+	router.Static("/ui", "./frontend")
+	
 	public := router.Group("/api")
 	{
 		public.POST("/auth/register", r.authHandler.Register)
@@ -47,7 +48,7 @@ func (r *Router) Setup() *gin.Engine {
 		public.GET("/sessions/upcoming", r.sessionHandler.GetUpcomingSessions)
 		public.GET("/sessions/movie/:movieId", r.sessionHandler.GetMovieSessions)
 		public.GET("/sessions/:id", r.sessionHandler.GetSession)
-		public.GET("/sessions/:sessionId/booked-seats", r.bookingHandler.GetSessionBookedSeats)
+		public.GET("/sessions/:id/booked-seats", r.bookingHandler.GetSessionBookedSeats)
 		public.GET("/halls/:id", r.hallHandler.GetHall)
 	}
 
