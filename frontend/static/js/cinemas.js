@@ -5,9 +5,9 @@
   }
 
   function updateNav() {
-    var span = document.getElementById('cinema-user-span');
-    var navProfile = document.getElementById('cinema-nav-profile');
-    var navAdmin = document.getElementById('cinema-nav-admin');
+    var span = document.getElementById('user-span');
+    var navProfile = document.getElementById('nav-profile');
+    var navAdmin = document.getElementById('nav-admin');
     if (!window.auth) return;
     if (navProfile) navProfile.style.display = auth.isCustomer() ? '' : 'none';
     if (navAdmin) navAdmin.style.display = auth.isAdmin() ? '' : 'none';
@@ -17,14 +17,14 @@
       span.innerHTML =
         'Hi, ' +
         (u.first_name || u.email) +
-        ' | <button type="button" id="cinema-logout-btn" class="btn btn-ghost">Log out</button>';
-      var btn = document.getElementById('cinema-logout-btn');
+        ' | <button type="button" id="logout-btn" class="btn btn-ghost">Log out</button>';
+      var btn = document.getElementById('logout-btn');
       if (btn) btn.onclick = function () { auth.logout(); updateNav(); };
     } else {
       span.innerHTML =
-        '<button type="button" id="cinema-login-btn" class="btn btn-primary">Login / Register</button>';
-      var loginBtn = document.getElementById('cinema-login-btn');
-      if (loginBtn) loginBtn.onclick = function () { if (window.openAuthModal) openAuthModal(); };
+        '<button type="button" id="login-btn" class="btn btn-primary">Login / Register</button>';
+      var loginBtn = document.getElementById('login-btn');
+      if (loginBtn) loginBtn.onclick = function () { if (window.openAuthModal) openAuthModal({ onSuccess: function () { location.reload(); } }); };
     }
   }
 

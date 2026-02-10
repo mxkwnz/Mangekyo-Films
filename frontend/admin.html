@@ -1,125 +1,128 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>Admin Panel - Mangekyo Cinema</title>
-    <link rel="stylesheet" href="static/css/main.css">
-    <link rel="stylesheet" href="static/css/auth-modal.css">
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Admin — Cinema</title>
+  <link rel="stylesheet" href="static/css/main.css">
+  <link rel="stylesheet" href="static/css/auth-modal.css">
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600&display=swap" rel="stylesheet">
 </head>
+
 <body>
-    <nav class="navbar">
-        <div class="container">
-            <div class="logo">Mangekyo Cinema</div>
-            <div class="nav-links">
-                <ul>
-                    <li><a href="index.html">Home</a></li>
-                    <li><a href="profile.html">Profile</a></li>
-                    <li><a href="admin.html">Admin</a></li>
-                </ul>
-                <span id="user-span" class="nav-user"></span>
-            </div>
+  <header class="site-header">
+    <div class="site-header-inner">
+      <div class="site-header-title">
+        <div class="mangekyo-logo">
+          <div class="iris-ring"></div>
         </div>
-    </nav>
-
-    <main id="admin-main">
-        <div class="container">
-            <!-- Access Denied -->
-            <div id="admin-forbidden" style="display:none;">
-                <h2>Access Denied</h2>
-                <p>This page is for administrators only.</p>
-                <a href="index.html" class="btn" style="margin-top: 20px;">Back to Home</a>
-            </div>
-
-            <!-- Admin Content -->
-            <div id="admin-content" style="display:none;">
-                <section class="page-heading">
-                    <h1>Admin Panel</h1>
-                    <p>Manage halls, movies, sessions, and view all bookings.</p>
-                </section>
-
-                <p id="admin-error" class="text-error" style="display:none;"></p>
-
-                <!-- Halls Management -->
-                <section>
-                    <h3>Hall Management</h3>
-                    <form id="form-hall">
-                        <input type="text" name="name" placeholder="Hall name (e.g., Hall 1 - IMAX)" required />
-                        <input type="text" name="location" placeholder="Location (e.g., Floor 1)" required />
-                        <input type="number" name="total_rows" placeholder="Total rows" min="1" required />
-                        <input type="number" name="seats_per_row" placeholder="Seats per row" min="1" required />
-                        <button type="submit" class="btn">Add Hall</button>
-                    </form>
-                    <ul id="admin-halls"></ul>
-                </section>
-
-                <!-- Movies Management -->
-                <section>
-                    <h3>Movie Management</h3>
-                    <form id="form-movie">
-                        <input type="text" name="name" placeholder="Movie title" required />
-                        <input type="number" name="year" placeholder="Year" min="1900" max="2100" required />
-                        <input type="number" name="duration" placeholder="Duration (minutes)" min="1" required />
-                        <textarea name="description" placeholder="Description" rows="2" style="grid-column: 1 / -1;"></textarea>
-                        <input type="text" name="genres" placeholder="Genres (comma-separated)" />
-                        <input type="text" name="age_restriction" placeholder="Age restriction (e.g., PG-13, R)" />
-                        <input type="url" name="poster_url" placeholder="Poster URL" />
-                        <input type="url" name="trailer_url" placeholder="Trailer URL (YouTube embed)" />
-                        <input type="number" name="rating" placeholder="Rating (0-10)" step="0.1" min="0" max="10" />
-                        <button type="submit" class="btn">Add Movie</button>
-                    </form>
-                    <ul id="admin-movies"></ul>
-                </section>
-
-                <!-- Sessions Management -->
-                <section>
-                    <h3>Session Management</h3>
-                    <form id="form-session">
-                        <input type="text" name="movie_id" placeholder="Movie ID" required />
-                        <input type="text" name="hall_id" placeholder="Hall ID" required />
-                        <input type="datetime-local" name="start_time" required />
-                        <input type="number" name="price" placeholder="Price" min="0" step="0.01" required />
-                        <select name="format">
-                            <option value="">Format</option>
-                            <option value="2D">2D</option>
-                            <option value="3D">3D</option>
-                            <option value="IMAX">IMAX</option>
-                            <option value="4DX">4DX</option>
-                        </select>
-                        <select name="language">
-                            <option value="">Language</option>
-                            <option value="English">English</option>
-                            <option value="Russian">Russian</option>
-                            <option value="Kazakh">Kazakh</option>
-                            <option value="Subtitled">Subtitled</option>
-                        </select>
-                        <input type="text" name="age_restriction" placeholder="Age restriction (optional)" />
-                        <button type="submit" class="btn">Add Session</button>
-                    </form>
-                    <ul id="admin-sessions"></ul>
-                </section>
-
-                <!-- Bookings Overview -->
-                <section>
-                    <h3>All Bookings</h3>
-                    <p style="color: #b3b3b3; margin-bottom: 15px;">
-                        View all customer bookings across all sessions.
-                    </p>
-                    <ul id="admin-bookings"></ul>
-                    <p id="no-bookings" style="display:none; text-align: center; color: #666; padding: 20px;">
-                        No bookings yet.
-                    </p>
-                </section>
-            </div>
+        <span>Mangekyo Cinema Admin</span>
+      </div>
+      <nav class="site-nav">
+        <div class="site-nav-primary">
+          <a href="index.html">Home</a>
+          <a href="profile.html" id="nav-profile">Profile</a>
         </div>
-    </main>
+        <span id="user-span" class="site-nav-user"></span>
+      </nav>
+    </div>
+  </header>
 
-    <footer>
-        <p>&copy; 2026 Mangekyo Cinema. All rights reserved.</p>
-    </footer>
+  <main id="admin-main">
+    <div class="page-shell">
+      <div id="admin-forbidden" style="display:none;" class="page-heading">
+        <h1>Access denied</h1>
+        <p>This page is for administrators only.</p>
+        <a href="index.html" class="btn btn-primary">Back to Home</a>
+      </div>
 
-    <script src="static/js/auth.js"></script>
-    <script src="static/js/api.js"></script>
-    <script src="static/js/admin.js"></script>
+      <div id="admin-content" style="display:none;">
+        <section class="page-heading">
+          <h1>Admin Dashboard</h1>
+          <p>Manage halls, movies, and viewing sessions.</p>
+        </section>
+
+        <p id="admin-error" class="error-msg" style="display:none;"></p>
+
+        <div class="admin-grid">
+          <section class="admin-section">
+            <h3>Halls</h3>
+            <form id="form-hall" class="admin-form">
+              <input type="text" name="name" placeholder="Hall name" required />
+              <input type="text" name="location" placeholder="Location" required />
+              <div class="form-row">
+                <input type="number" name="total_rows" placeholder="Rows" min="1" required />
+                <input type="number" name="seats_per_row" placeholder="Seats per row" min="1" required />
+              </div>
+              <button type="submit" class="btn btn-primary">Add Hall</button>
+            </form>
+            <ul id="admin-halls" class="admin-list"></ul>
+          </section>
+
+          <section class="admin-section">
+            <h3>Movies</h3>
+            <form id="form-movie" class="admin-form">
+              <input type="text" name="name" placeholder="Title" required />
+              <div class="form-row">
+                <input type="number" name="duration" placeholder="Duration (min)" min="1" required />
+                <input type="number" name="rating" placeholder="Rating" step="0.1" min="0" max="10" />
+              </div>
+              <textarea name="description" placeholder="Description" rows="2"></textarea>
+              <input type="text" name="poster_url" placeholder="Poster URL" />
+              <button type="submit" class="btn btn-primary">Add Movie</button>
+            </form>
+            <ul id="admin-movies" class="admin-list"></ul>
+            <div id="movies-pagination" class="pagination-controls"
+              style="margin-top: 1rem; display: flex; align-items: center; justify-content: center; gap: 1rem;">
+              <button type="button" id="prev-movies" class="btn btn-ghost btn-sm">Prev</button>
+              <span id="movies-page-info" style="font-size: 0.9rem; color: var(--text-dim);">Page 1</span>
+              <button type="button" id="next-movies" class="btn btn-ghost btn-sm">Next</button>
+            </div>
+          </section>
+
+          <section class="admin-section">
+            <h3>Sessions</h3>
+            <form id="form-session" class="admin-form">
+              <select name="movie_id" required>
+                <option value="">Select Movie</option>
+              </select>
+              <select name="hall_id" required>
+                <option value="">Select Hall</option>
+              </select>
+              <div class="form-row">
+                <input type="datetime-local" name="start_time" required />
+                <input type="number" name="price" placeholder="Price (₸)" min="0" step="0.01" required />
+              </div>
+              <button type="submit" class="btn btn-primary">Add Session</button>
+            </form>
+            <ul id="admin-sessions" class="admin-list"></ul>
+            <div id="sessions-pagination" class="pagination-controls"
+              style="margin-top: 1rem; display: flex; align-items: center; justify-content: center; gap: 1rem;">
+              <button type="button" id="prev-sessions" class="btn btn-ghost btn-sm">Prev</button>
+              <span id="sessions-page-info" style="font-size: 0.9rem; color: var(--text-dim);">Page 1</span>
+              <button type="button" id="next-sessions" class="btn btn-ghost btn-sm">Next</button>
+            </div>
+          </section>
+
+          <section class="admin-section full-width">
+            <h3>Recent Bookings</h3>
+            <ul id="admin-bookings" class="admin-list"></ul>
+            <div id="bookings-pagination" class="pagination-controls"
+              style="margin-top: 1rem; display: flex; align-items: center; justify-content: center; gap: 1rem;">
+              <button type="button" id="prev-bookings" class="btn btn-ghost btn-sm">Prev</button>
+              <span id="bookings-page-info" style="font-size: 0.9rem; color: var(--text-dim);">Page 1</span>
+              <button type="button" id="next-bookings" class="btn btn-ghost btn-sm">Next</button>
+            </div>
+          </section>
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <script src="static/js/auth.js"></script>
+  <script src="static/js/api.js"></script>
+  <script src="static/js/admin.js"></script>
 </body>
+
 </html>

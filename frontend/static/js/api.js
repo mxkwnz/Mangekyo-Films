@@ -2,12 +2,22 @@
   var API_BASE = window.API_BASE || '/api';
 
   function withJson(response) {
-    return response.json().then(function (data) {
+    return response.text().then(function (text) {
+      var data = null;
+      try {
+        if (text) data = JSON.parse(text);
+      } catch (e) {
+        return { ok: false, status: response.status, data: { error: 'Invalid server response: ' + text.substring(0, 100) } };
+      }
       return { ok: response.ok, status: response.status, data: data };
     });
   }
 
   function authHeaders() {
+    var u = window.auth && window.auth.getUser ? window.auth.getUser() : null;
+    if (u && u.token) {
+      return { 'Authorization': 'Bearer ' + u.token };
+    }
     return window.auth && window.auth.getAuthHeaders ? window.auth.getAuthHeaders() : {};
   }
 
@@ -25,11 +35,16 @@
       method: method,
       headers: headers,
       body: body
-    }).then(withJson);
+    }).then(function (response) {
+      if (response.status === 401) {
+
+      }
+      return withJson(response);
+    });
   }
 
   window.api = {
-    /* Movies */
+
     fetchMovies: function () {
       return request('GET', '/movies').then(function (res) {
         if (!res.ok) throw new Error(res.data.error || 'Failed to load movies');
@@ -43,7 +58,7 @@
       });
     },
 
-    /* Sessions & halls */
+
     fetchMovieSessions: function (movieId) {
       return request('GET', '/sessions/movie/' + encodeURIComponent(movieId)).then(function (res) {
         if (!res.ok) throw new Error(res.data.error || 'Failed to load sessions');
@@ -75,10 +90,7 @@
       });
     },
 
-    /**
-     * Pseudo-cinema list for a movie, derived from halls that
-     * have upcoming sessions for the given movie.
-     */
+
     fetchCinemasForMovie: function (movieId) {
       var self = this;
       return self.fetchMovieSessions(movieId).then(function (sessions) {
@@ -121,7 +133,7 @@
       });
     },
 
-    /* Auth */
+
     login: function (payload) {
       return request('POST', '/auth/login', { body: payload }).then(function (res) {
         if (!res.ok) throw new Error(res.data && res.data.error || 'Login failed');
@@ -135,7 +147,7 @@
       });
     },
 
-    /* Bookings */
+
     createBooking: function (payload) {
       return request('POST', '/bookings', {
         headers: authHeaders(),
@@ -162,7 +174,7 @@
       });
     },
 
-    /* Reviews (ratings) */
+
     fetchMovieReviews: function (movieId) {
       return request('GET', '/reviews/movie/' + encodeURIComponent(movieId), {
         headers: authHeaders()
@@ -179,7 +191,141 @@
         if (!res.ok) throw new Error(res.data.error || 'Failed to submit review');
         return res.data;
       });
+    },
+    fetchMyReviews: function () {
+      return request('GET', '/reviews/my', {
+        headers: authHeaders()
+      }).then(function (res) {
+        if (!res.ok) throw new Error(res.data.error || 'Failed to load reviews');
+        return Array.isArray(res.data) ? res.data : [];
+      });
+    },
+    updateReview: function (id, payload) {
+      return request('PUT', '/reviews/' + encodeURIComponent(id), {
+        headers: authHeaders(),
+        body: payload
+      }).then(function (res) {
+        if (!res.ok) throw new Error(res.data.error || 'Failed to update review');
+        return res.data;
+      });
+    },
+    deleteReview: function (id) {
+      return request('DELETE', '/reviews/' + encodeURIComponent(id), {
+        headers: authHeaders()
+      }).then(function (res) {
+        if (!res.ok) throw new Error(res.data.error || 'Failed to delete review');
+        return res.data;
+      });
+    },
+
+
+    fetchMyCards: function () {
+      return request('GET', '/payment-cards', { headers: authHeaders() }).then(function (res) {
+        if (!res.ok) throw new Error(res.data.error || 'Failed to load cards');
+        var data = res.data;
+        if (data && data.cards) return data.cards;
+        return Array.isArray(data) ? data : [];
+      });
+    },
+    createCard: function (payload) {
+      return request('POST', '/payment-cards', { headers: authHeaders(), body: payload }).then(function (res) {
+        if (!res.ok) throw new Error(res.data.error || 'Failed to create card');
+        return res.data;
+      });
+    },
+    deleteCard: function (id) {
+      return request('DELETE', '/payment-cards/' + encodeURIComponent(id), { headers: authHeaders() }).then(function (res) {
+        if (!res.ok) throw new Error(res.data.error || 'Failed to delete card');
+        return res.data;
+      });
+    },
+
+
+    topUpBalance: function (payload) {
+      return request('POST', '/payments/topup', { headers: authHeaders(), body: payload }).then(function (res) {
+        if (!res.ok) throw new Error(res.data.error || 'Top-up failed');
+        return res.data;
+      });
+    },
+    fetchMyPayments: function () {
+      return request('GET', '/payments', { headers: authHeaders() }).then(function (res) {
+        if (!res.ok) throw new Error(res.data.error || 'Failed to load payments');
+        return Array.isArray(res.data) ? res.data : [];
+      });
+    },
+
+
+    adminFetchHalls: function () {
+      return request('GET', '/admin/halls', { headers: authHeaders() }).then(function (res) {
+        if (!res.ok) throw new Error(res.data.error || 'Failed to load halls');
+        return Array.isArray(res.data) ? res.data : [];
+      });
+    },
+    adminCreateHall: function (payload) {
+      return request('POST', '/admin/halls', { headers: authHeaders(), body: payload }).then(function (res) {
+        if (!res.ok) throw new Error(res.data.error || 'Failed to create hall');
+        return res.data;
+      });
+    },
+    adminDeleteHall: function (id) {
+      return request('DELETE', '/admin/halls/' + encodeURIComponent(id), { headers: authHeaders() }).then(function (res) {
+        if (!res.ok) throw new Error(res.data.error || 'Failed to delete hall');
+        return res.data;
+      });
+    },
+    adminCreateMovie: function (payload) {
+      return request('POST', '/admin/movies', { headers: authHeaders(), body: payload }).then(function (res) {
+        if (!res.ok) throw new Error(res.data.error || 'Failed to create movie');
+        return res.data;
+      });
+    },
+    adminDeleteMovie: function (id) {
+      return request('DELETE', '/admin/movies/' + encodeURIComponent(id), { headers: authHeaders() }).then(function (res) {
+        if (!res.ok) throw new Error(res.data.error || 'Failed to delete movie');
+        return res.data;
+      });
+    },
+    adminCreateSession: function (payload) {
+      return request('POST', '/admin/sessions', { headers: authHeaders(), body: payload }).then(function (res) {
+        if (!res.ok) throw new Error(res.data.error || 'Failed to create session');
+        return res.data;
+      });
+    },
+    adminDeleteSession: function (id) {
+      return request('DELETE', '/admin/sessions/' + encodeURIComponent(id), { headers: authHeaders() }).then(function (res) {
+        if (!res.ok) throw new Error(res.data.error || 'Failed to delete session');
+        return res.data;
+      });
+    },
+    adminFetchBookingsBySession: function (sessionId) {
+      return request('GET', '/admin/bookings/session/' + sessionId, { headers: authHeaders() }).then(function (res) {
+        if (!res.ok) throw new Error(res.data.error || 'Failed to load session bookings');
+        return Array.isArray(res.data) ? res.data : [];
+      });
+    },
+
+
+    fetchMe: function () {
+      return request('GET', '/auth/me', { headers: authHeaders() }).then(function (res) {
+        if (!res.ok) throw new Error(res.data.error || 'Failed to load profile');
+        return res.data.user || res.data;
+      });
+    },
+    updateProfile: function (payload) {
+      return request('PUT', '/auth/me', {
+        headers: authHeaders(),
+        body: payload
+      }).then(function (res) {
+        if (!res.ok) throw new Error(res.data.error || 'Failed to update profile');
+        return res.data;
+      });
+    },
+
+    adminFetchBookings: function () {
+      return request('GET', '/admin/bookings', { headers: authHeaders() }).then(function (res) {
+        if (!res.ok) throw new Error(res.data.error || 'Failed to load bookings');
+        return Array.isArray(res.data) ? res.data : [];
+      });
     }
   };
 })();
-

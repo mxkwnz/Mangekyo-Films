@@ -65,20 +65,23 @@ func (r *Router) Setup() *gin.Engine {
 	user := router.Group("/api")
 	user.Use(middleware.AuthRequired())
 	{
+		user.GET("/auth/me", r.authHandler.GetMe)
+		user.PUT("/auth/me", r.authHandler.UpdateProfile)
 		user.POST("/bookings", r.bookingHandler.BookTickets)
 		user.DELETE("/bookings/:id", r.bookingHandler.CancelTicket)
 		user.GET("/bookings/my", r.bookingHandler.GetMyTickets)
 
 		user.POST("/reviews", r.reviewHandler.CreateReview)
 		user.GET("/reviews/movie/:movieId", r.reviewHandler.GetMovieReviews)
+		user.GET("/reviews/my", r.reviewHandler.GetMyReviews)
+		user.PUT("/reviews/:id", r.reviewHandler.UpdateReview)
+		user.DELETE("/reviews/:id", r.reviewHandler.DeleteReview)
 
-		// Payment card routes
 		user.POST("/payment-cards", r.paymentCardHandler.CreateCard)
 		user.GET("/payment-cards", r.paymentCardHandler.GetMyCards)
 		user.GET("/payment-cards/:id", r.paymentCardHandler.GetCard)
 		user.DELETE("/payment-cards/:id", r.paymentCardHandler.DeleteCard)
 
-		// Payment routes
 		user.POST("/payments/topup", r.paymentHandler.TopUpBalance)
 		user.GET("/payments", r.paymentHandler.GetMyPayments)
 		user.GET("/payments/:id", r.paymentHandler.GetPayment)
