@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Top-up Balance — Mangekyo Cinema</title>
+    <link rel="stylesheet" href="static/css/main.css">
+    <link rel="stylesheet" href="static/css/auth-modal.css">
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600&display=swap" rel="stylesheet">
+</head>
+
+<body>
+    <header class="site-header">
+        <div class="site-header-inner">
+            <div class="site-header-title">
+                <div class="mangekyo-logo">
+                    <div class="iris-ring"></div>
+                </div>
+                <span>Mangekyo Cinema</span>
+            </div>
+            <nav class="site-nav">
+                <div class="site-nav-primary">
+                    <a href="index.html">Home</a>
+                    <a href="profile.html">Profile</a>
+                    <a href="admin.html" id="nav-admin" style="display:none;">Admin</a>
+                </div>
+                <span id="user-span" class="site-nav-user"></span>
+            </nav>
+        </div>
+    </header>
+
+    <main>
+        <div class="page-shell">
+            <section class="page-heading">
+                <h1>Wallet & Top-up</h1>
+                <p>Manage your payment cards and add balance to your account.</p>
+            </section>
+
+            <section class="card-grid" style="grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 2rem;">
+
+                <div class="card">
+                    <div class="card-body">
+                        <h3 class="card-title">Add Payment Card</h3>
+                        <form id="form-add-card" class="auth-form"
+                            style="padding: 0; box-shadow: none; border: none; background: transparent;">
+                            <input type="text" name="card_holder_name" placeholder="Name on Card" required>
+                            <input type="text" name="card_number" placeholder="Card Number (16 digits)" required
+                                maxlength="16" pattern="\d{16}">
+                            <div style="display: flex; gap: 1rem; margin-top: 1rem;">
+                                <input type="text" name="expiry_date" placeholder="MM/YY" required maxlength="5"
+                                    style="flex: 2; margin-bottom: 0;">
+                                <input type="text" name="cvv" placeholder="CVV" required maxlength="3" pattern="\d{3}"
+                                    style="flex: 1; margin-bottom: 0;">
+                            </div>
+                            <button type="submit" class="btn btn-primary" style="width: 100%;">Add Card</button>
+                        </form>
+                    </div>
+                </div>
+
+
+                <div class="card">
+                    <div class="card-body">
+                        <h3 class="card-title">Top-up Balance</h3>
+                        <form id="form-topup" class="auth-form"
+                            style="padding: 0; box-shadow: none; border: none; background: transparent;">
+                            <select name="card_id" id="select-card" required
+                                style="width: 100%; padding: 0.8rem; border-radius: 8px; background: var(--input-bg); color: white; border: 1px solid var(--border); margin-bottom: 1rem;">
+                                <option value="">Select a card</option>
+                            </select>
+                            <input type="number" name="amount" placeholder="Amount (₸)" required min="1" step="0.01">
+                            <button type="submit" class="btn btn-primary" style="width: 100%;">Add Funds</button>
+                        </form>
+                    </div>
+                </div>
+
+            </section>
+
+            <section style="margin-top: 3rem;">
+                <h3>My Saved Cards</h3>
+                <div id="cards-list" class="card-grid" style="margin-top: 1rem;"></div>
+            </section>
+
+            <p id="topup-error" class="error-msg" style="display:none; text-align: center; margin-top: 2rem;"></p>
+        </div>
+    </main>
+
+    <script src="static/js/auth.js"></script>
+    <script src="static/js/api.js"></script>
+    <script src="static/js/topup.js"></script>
+</body>
+
+</html>
