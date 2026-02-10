@@ -1,40 +1,48 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Cinemas — Mangekyo Cinema</title>
-  <link rel="stylesheet" href="static/css/main.css">
-  <link rel="stylesheet" href="static/css/auth-modal.css">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Select Cinema - Mangekyo Cinema</title>
+    <link rel="stylesheet" href="static/css/main.css">
+    <link rel="stylesheet" href="static/css/auth-modal.css">
 </head>
 <body>
-  <header class="site-header">
-    <div class="site-header-inner">
-      <div class="site-header-title">Mangekyo Cinema</div>
-      <nav class="site-nav">
-        <div class="site-nav-primary">
-          <a href="index.html">Home</a>
-          <a href="profile.html" id="cinema-nav-profile" style="display:none;">Profile</a>
-          <a href="admin.html" id="cinema-nav-admin" style="display:none;">Admin</a>
+    <nav class="navbar">
+        <div class="container">
+            <div class="logo">Mangekyo Cinema</div>
+            <div class="nav-links">
+                <ul>
+                    <li><a href="index.html">Home</a></li>
+                    <li><a href="profile.html" id="cinema-nav-profile" style="display:none;">Profile</a></li>
+                    <li><a href="admin.html" id="cinema-nav-admin" style="display:none;">Admin</a></li>
+                </ul>
+                <span id="cinema-user-span" class="nav-user"></span>
+            </div>
         </div>
-        <span id="cinema-user-span" class="site-nav-user"></span>
-      </nav>
-    </div>
-  </header>
-  <main>
-    <div class="page-shell">
-      <section class="page-heading">
-        <h1 id="cinema-page-title">Choose a cinema</h1>
-        <p id="cinema-page-subtitle">Pick where you want to watch this movie.</p>
-      </section>
-      <section id="cinema-movie-summary" style="display:flex;gap:1rem;align-items:center;margin-bottom:1rem;"></section>
-      <section id="cinema-list" class="card-grid" aria-live="polite"></section>
-      <p id="cinema-error" class="error-msg" style="display:none;"></p>
-    </div>
-  </main>
-  <script src="static/js/auth.js"></script>
-  <script src="static/js/api.js"></script>
-  <script src="static/js/cinemas.js"></script>
+    </nav>
+
+    <main>
+        <div class="container">
+            <section class="page-heading">
+                <h1>Choose a Cinema</h1>
+                <p>Select where you'd like to watch this movie.</p>
+            </section>
+
+            <section id="cinema-movie-summary"></section>
+            
+            <section id="cinema-list" class="card-grid" aria-live="polite"></section>
+            
+            <p id="cinema-error" class="text-error" style="display:none;"></p>
+        </div>
+    </main>
+
+    <footer>
+        <p>&copy; 2026 Mangekyo Cinema. All rights reserved.</p>
+    </footer>
+
+    <script src="static/js/auth.js"></script>
+    <script src="static/js/api.js"></script>
+    <script src="static/js/cinemas.js"></script>
 </body>
 </html>
-

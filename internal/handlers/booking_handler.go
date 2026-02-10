@@ -1,6 +1,7 @@
 package handlers
 
 import (
+	"cinema-system/internal/models"
 	"cinema-system/internal/services"
 	"net/http"
 
@@ -16,16 +17,21 @@ func NewBookingHandler(bookingService *services.BookingService) *BookingHandler 
 	return &BookingHandler{bookingService: bookingService}
 }
 
-type BookTicketRequest struct {
-	SessionID  string `json:"session_id" binding:"required"`
-	RowNumber  int    `json:"row_number" binding:"required,min=1"`
-	SeatNumber int    `json:"seat_number" binding:"required,min=1"`
+type BookTicketSeat struct {
+	RowNumber  int               `json:"row_number" binding:"required,min=1"`
+	SeatNumber int               `json:"seat_number" binding:"required,min=1"`
+	Type       models.TicketType `json:"type" binding:"required"`
 }
 
-func (h *BookingHandler) BookTicket(c *gin.Context) {
+type BookTicketsRequest struct {
+	SessionID string           `json:"session_id" binding:"required"`
+	Seats     []BookTicketSeat `json:"seats" binding:"required,dive"`
+}
+
+func (h *BookingHandler) BookTickets(c *gin.Context) {
 	userID := c.MustGet("userID").(primitive.ObjectID)
 
-	var req BookTicketRequest
+	var req BookTicketsRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
@@ -37,13 +43,22 @@ func (h *BookingHandler) BookTicket(c *gin.Context) {
 		return
 	}
 
-	ticket, err := h.bookingService.BookTicket(c.Request.Context(), userID, sessionID, req.RowNumber, req.SeatNumber)
+	var seatRequests []services.SeatBookingRequest
+	for _, s := range req.Seats {
+		seatRequests = append(seatRequests, services.SeatBookingRequest{
+			RowNumber:  s.RowNumber,
+			SeatNumber: s.SeatNumber,
+			Type:       s.Type,
+		})
+	}
+
+	tickets, err := h.bookingService.BookTickets(c.Request.Context(), userID, sessionID, seatRequests)
 	if err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
 
-	c.JSON(http.StatusCreated, ticket)
+	c.JSON(http.StatusCreated, tickets)
 }
 
 func (h *BookingHandler) CancelTicket(c *gin.Context) {
@@ -100,7 +115,6 @@ func (h *BookingHandler) GetAllBookings(c *gin.Context) {
 	c.JSON(http.StatusOK, tickets)
 }
 
-// GetSessionBookedSeats returns only row/seat for public seat map (no auth).
 func (h *BookingHandler) GetSessionBookedSeats(c *gin.Context) {
 	sessionID, err := primitive.ObjectIDFromHex(c.Param("id"))
 	if err != nil {

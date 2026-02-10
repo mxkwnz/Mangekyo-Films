@@ -1,343 +1,87 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Session — Cinema</title>
-  <link rel="stylesheet" href="static/css/main.css">
-  <link rel="stylesheet" href="static/css/auth-modal.css">
-  <style>
-    #session-header { display: flex; gap: 1rem; align-items: flex-start; margin-bottom: 1rem; }
-    #session-poster { width: 120px; height: auto; object-fit: cover; }
-    #screen-label { text-align: center; margin: 1rem 0 0.5rem; font-weight: bold; }
-    #seat-map-wrap { margin: 1rem 0; }
-    #seat-map { max-width: 600px; margin: 0 auto; }
-    .seat-row { display: flex; align-items: center; justify-content: center; gap: 4px; margin-bottom: 2px; }
-    .seat-row .row-num { min-width: 20px; text-align: center; font-size: 0.85rem; }
-    .seat-row-cells { display: flex; gap: 2px; }
-    .seat { width: 24px; height: 24px; padding: 0; border-radius: 3px; cursor: pointer; border: none; }
-    .seat.free { background: #5b3ea8; color: transparent; }
-    .seat.free:hover { background: #4c3390; }
-    .seat.occupied { background: #a0a4a8; cursor: not-allowed; }
-    .seat.selected { background: transparent; border: 2px solid #5b3ea8; }
-    .seat-demo { display: inline-block; width: 14px; height: 14px; border-radius: 2px; vertical-align: middle; margin-right: 4px; }
-    .seat-demo.free { background: #5b3ea8; }
-    .seat-demo.occupied { background: #a0a4a8; }
-    .seat-demo.selected { background: transparent; border: 2px solid #5b3ea8; box-sizing: border-box; }
-    #seat-legend { text-align: center; margin-top: 1rem; }
-    .legend-item { margin: 0 0.75rem; }
-    #confirm-wrap { margin-top: 1.5rem; }
-    #confirm-booking-btn:disabled { opacity: 0.6; cursor: not-allowed; }
-    .error-msg { color: #c00; }
-    #success-message { color: #2a2; margin-top: 1rem; }
-  </style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Select Seats - Mangekyo Cinema</title>
+    <link rel="stylesheet" href="static/css/main.css">
+    <link rel="stylesheet" href="static/css/auth-modal.css">
 </head>
 <body>
-  <header class="site-header">
-    <div class="site-header-inner">
-      <div class="site-header-title">Mangekyo Cinema</div>
-      <nav class="site-nav">
-        <div class="site-nav-primary">
-          <a href="index.html">Home</a>
-          <a href="profile.html" id="session-nav-profile" style="display:none;">Profile</a>
-          <a href="admin.html" id="session-nav-admin" style="display:none;">Admin</a>
+    <nav class="navbar">
+        <div class="container">
+            <div class="logo">Mangekyo Cinema</div>
+            <div class="nav-links">
+                <ul>
+                    <li><a href="index.html">Home</a></li>
+                    <li><a href="profile.html" id="session-nav-profile" style="display:none;">Profile</a></li>
+                    <li><a href="admin.html" id="session-nav-admin" style="display:none;">Admin</a></li>
+                </ul>
+                <span id="session-user-span" class="nav-user"></span>
+            </div>
         </div>
-        <span id="session-user-span" class="site-nav-user"></span>
-      </nav>
-    </div>
-  </header>
-  <div id="session-page">
-    <header id="session-header">
-      <img id="session-poster" src="" alt="Poster" />
-      <div id="session-info">
-        <h1 id="session-movie-title"></h1>
-        <p id="session-duration"></p>
-        <p id="session-hall"></p>
-        <p id="session-time"></p>
-        <p id="session-price"></p>
-      </div>
-    </header>
+    </nav>
 
-    <div id="screen-label">Screen</div>
+    <main>
+        <div id="session-page">
+            <section id="session-header">
+                <img id="session-poster" src="" alt="Movie Poster" />
+                <div id="session-info">
+                    <h1 id="session-movie-title"></h1>
+                    <p id="session-duration"></p>
+                    <p id="session-hall"></p>
+                    <p id="session-time"></p>
+                    <p id="session-price"></p>
+                </div>
+            </section>
 
-    <div id="seat-map-wrap">
-      <div id="seat-map"></div>
-      <div id="seat-legend">
-        <span class="legend-item"><span class="seat-demo free"></span> Available</span>
-        <span class="legend-item"><span class="seat-demo occupied"></span> Taken</span>
-        <span class="legend-item"><span class="seat-demo selected"></span> Your choice</span>
-      </div>
-    </div>
+            <div id="screen-label">SCREEN</div>
 
-    <div id="confirm-wrap">
-      <button type="button" id="confirm-booking-btn" disabled>Book</button>
-      <p id="confirm-error" class="error-msg" style="display:none;"></p>
-    </div>
+            <div id="seat-map-wrap">
+                <div id="seat-map"></div>
+                <div id="seat-legend">
+                    <span class="legend-item">
+                        <span class="seat-demo free"></span>
+                        Available
+                    </span>
+                    <span class="legend-item">
+                        <span class="seat-demo occupied"></span>
+                        Taken
+                    </span>
+                    <span class="legend-item">
+                        <span class="seat-demo selected"></span>
+                        Your Selection
+                    </span>
+                </div>
+            </div>
 
-    <div id="success-message" style="display:none;">
-      <p>Booking successful. You can see your ticket in Profile.</p>
-    </div>
-  </div>
+            <div id="selected-seat-info" style="text-align: center; margin-top: 20px; min-height: 30px;">
+                <p id="seat-info-text" style="color: #b3b3b3;"></p>
+            </div>
 
-  <script src="static/js/auth.js"></script>
-  <script>
-(function () {
-  var API_BASE = window.API_BASE || '/api';
-  var sessionId = null;
-  var session = null;
-  var movie = null;
-  var hall = null;
-  var bookedSeats = [];
-  var selectedSeat = null;
-  var seatMapEl = null;
-  var confirmBtn = null;
-  var successEl = null;
-  var confirmErrorEl = null;
+            <div id="confirm-wrap">
+                <button type="button" id="confirm-booking-btn" class="btn" disabled>
+                    Confirm Booking
+                </button>
+                <p id="confirm-error" class="text-error" style="display:none;"></p>
+            </div>
 
-  function getParam(name) {
-    var m = new RegExp('([?&])' + name + '=([^&]*)').exec(location.search);
-    return m ? decodeURIComponent(m[2]) : null;
-  }
+            <div id="success-message" style="display:none;">
+                <p>🎉 Booking successful! You can view your ticket in your Profile.</p>
+                <div style="margin-top: 20px;">
+                    <a href="profile.html" class="btn">Go to Profile</a>
+                    <a href="index.html" class="btn btn-ghost" style="margin-left: 10px;">Back to Home</a>
+                </div>
+            </div>
+        </div>
+    </main>
 
-  function authHeaders() {
-    return window.auth && window.auth.getAuthHeaders ? window.auth.getAuthHeaders() : {};
-  }
+    <footer>
+        <p>&copy; 2026 Mangekyo Cinema. All rights reserved.</p>
+    </footer>
 
-  function ensureLoggedIn(cb) {
-    if (window.auth && window.auth.isLoggedIn && window.auth.isLoggedIn()) {
-      if (cb) cb();
-      return;
-    }
-    window.openAuthModal({ onSuccess: function () { updateSessionNav(); if (cb) cb(); } });
-  }
-
-  function updateSessionNav() {
-    var navProfile = document.getElementById('session-nav-profile');
-    var navAdmin = document.getElementById('session-nav-admin');
-    var span = document.getElementById('session-user-span');
-    if (navProfile) navProfile.style.display = (window.auth && auth.isCustomer && auth.isCustomer()) ? '' : 'none';
-    if (navAdmin) navAdmin.style.display = (window.auth && auth.isAdmin && auth.isAdmin()) ? '' : 'none';
-    if (!span) return;
-    if (window.auth && auth.isLoggedIn && auth.isLoggedIn()) {
-      var u = auth.getUser();
-      span.innerHTML = (u.first_name || u.email) + ' | <a href="index.html">Home</a> | <a href="profile.html">Profile</a> | <button type="button" id="session-logout-btn">Log out</button>';
-      var btn = document.getElementById('session-logout-btn');
-      if (btn) btn.onclick = function () { auth.logout(); updateSessionNav(); };
-    } else {
-      span.innerHTML = '<button type="button" id="session-login-btn">Login / Register</button>';
-      var loginBtn = document.getElementById('session-login-btn');
-      if (loginBtn) loginBtn.onclick = function () { openAuthModal({ onSuccess: updateSessionNav }); };
-    }
-  }
-
-  function setLoading(loading) {
-    if (confirmBtn) confirmBtn.disabled = loading;
-  }
-
-  function showSuccess() {
-    if (successEl) successEl.style.display = 'block';
-    if (confirmBtn) confirmBtn.style.display = 'none';
-    if (seatMapEl) seatMapEl.style.pointerEvents = 'none';
-  }
-
-  function showConfirmError(msg) {
-    if (!confirmErrorEl) return;
-    confirmErrorEl.textContent = msg || '';
-    confirmErrorEl.style.display = msg ? 'block' : 'none';
-  }
-
-  function fetchSession() {
-    if (!sessionId) return Promise.reject(new Error('No sessionId'));
-    return fetch(API_BASE + '/sessions/' + sessionId).then(function (r) { return r.json(); });
-  }
-
-  function fetchMovie(id) {
-    return fetch(API_BASE + '/movies/' + id).then(function (r) { return r.json(); });
-  }
-
-  function fetchHall(id) {
-    return fetch(API_BASE + '/halls/' + id).then(function (r) { return r.json(); });
-  }
-
-  function fetchBookedSeats() {
-    return fetch(API_BASE + '/sessions/' + sessionId + '/booked-seats').then(function (r) { return r.json(); });
-  }
-
-  function isBooked(row, seat) {
-    return bookedSeats.some(function (s) { return s.row_number === row && s.seat_number === seat; });
-  }
-
-  function renderSeatMap() {
-    if (!hall || !seatMapEl) return;
-    var rows = hall.total_rows;
-    var seatsPerRow = hall.seats_per_row;
-    seatMapEl.innerHTML = '';
-
-    for (var r = 1; r <= rows; r++) {
-      var rowDiv = document.createElement('div');
-      rowDiv.className = 'seat-row';
-
-      var leftNum = document.createElement('span');
-      leftNum.className = 'row-num';
-      leftNum.textContent = r;
-      rowDiv.appendChild(leftNum);
-
-      var cells = document.createElement('div');
-      cells.className = 'seat-row-cells';
-      for (var s = 1; s <= seatsPerRow; s++) {
-        var cell = document.createElement('button');
-        cell.type = 'button';
-        cell.className = 'seat';
-        cell.dataset.row = r;
-        cell.dataset.seat = s;
-        cell.setAttribute('aria-label', 'Row ' + r + ', seat ' + s);
-        var occupied = isBooked(r, s);
-        if (occupied) {
-          cell.classList.add('occupied');
-          cell.disabled = true;
-        } else {
-          cell.classList.add('free');
-          cell.addEventListener('click', function (ev) {
-            var row = parseInt(ev.currentTarget.dataset.row, 10);
-            var seat = parseInt(ev.currentTarget.dataset.seat, 10);
-            selectSeat(row, seat);
-          });
-        }
-        cells.appendChild(cell);
-      }
-      rowDiv.appendChild(cells);
-
-      var rightNum = document.createElement('span');
-      rightNum.className = 'row-num';
-      rightNum.textContent = r;
-      rowDiv.appendChild(rightNum);
-
-      seatMapEl.appendChild(rowDiv);
-    }
-    updateSeatSelection();
-  }
-
-  function selectSeat(row, seat) {
-    if (isBooked(row, seat)) return;
-    selectedSeat = { row: row, seat: seat };
-    updateSeatSelection();
-    confirmBtn.disabled = false;
-  }
-
-  function updateSeatSelection() {
-    var seats = seatMapEl ? seatMapEl.querySelectorAll('.seat:not(.occupied)') : [];
-    for (var i = 0; i < seats.length; i++) {
-      var el = seats[i];
-      var r = parseInt(el.dataset.row, 10);
-      var s = parseInt(el.dataset.seat, 10);
-      if (selectedSeat && selectedSeat.row === r && selectedSeat.seat === s) {
-        el.classList.add('selected');
-        el.classList.remove('free');
-      } else {
-        el.classList.remove('selected');
-        el.classList.add('free');
-      }
-    }
-  }
-
-  function fillHeader() {
-    var poster = document.getElementById('session-poster');
-    var title = document.getElementById('session-movie-title');
-    var duration = document.getElementById('session-duration');
-    var hallEl = document.getElementById('session-hall');
-    var timeEl = document.getElementById('session-time');
-    var priceEl = document.getElementById('session-price');
-    if (poster && movie) poster.src = movie.poster_url || '';
-    if (poster && !movie.poster_url) poster.alt = movie.name || '';
-    if (title && movie) title.textContent = movie.name || '';
-    if (duration && movie) duration.textContent = 'Duration: ' + (movie.duration || 0) + ' min';
-    if (hallEl && hall) hallEl.textContent = 'Hall: ' + (hall.name || '') + (hall.location ? ' — ' + hall.location : '');
-    if (timeEl && session && session.start_time) {
-      var start = new Date(session.start_time);
-      timeEl.textContent = 'Time: ' + start.toLocaleString();
-    }
-    if (priceEl && session) priceEl.textContent = 'Price: ' + (session.price != null ? session.price : 0);
-  }
-
-  function doBooking() {
-    if (!selectedSeat || !sessionId) return;
-    ensureLoggedIn(function () {
-      setLoading(true);
-      showConfirmError('');
-      fetch(API_BASE + '/bookings', {
-        method: 'POST',
-        headers: authHeaders(),
-        body: JSON.stringify({
-          session_id: sessionId,
-          row_number: selectedSeat.row,
-          seat_number: selectedSeat.seat
-        })
-      })
-        .then(function (res) { return res.json().then(function (data) { return { ok: res.ok, data: data }; }); })
-        .then(function (result) {
-          setLoading(false);
-          if (result.ok) {
-            showSuccess();
-            bookedSeats.push({ row_number: selectedSeat.row, seat_number: selectedSeat.seat });
-            selectedSeat = null;
-          } else {
-            showConfirmError(result.data.error || 'Booking failed');
-          }
-        })
-        .catch(function () {
-          setLoading(false);
-          showConfirmError('Network error');
-        });
-    });
-  }
-
-  function init() {
-    updateSessionNav();
-    sessionId = getParam('sessionId') || getParam('session_id');
-    seatMapEl = document.getElementById('seat-map');
-    confirmBtn = document.getElementById('confirm-booking-btn');
-    successEl = document.getElementById('success-message');
-    confirmErrorEl = document.getElementById('confirm-error');
-
-    if (!sessionId) {
-      document.getElementById('session-page').innerHTML = '<p>Specify session in URL: session.html?sessionId=...</p>';
-      return;
-    }
-
-    Promise.all([fetchSession(), fetchBookedSeats()])
-      .then(function (arr) {
-        session = arr[0];
-        if (session.error) throw new Error(session.error || 'Session not found');
-        bookedSeats = Array.isArray(arr[1]) ? arr[1] : [];
-        return fetchMovie(session.movie_id).then(function (m) {
-          movie = m;
-          return fetchHall(session.hall_id);
-        });
-      })
-      .then(function (h) {
-        hall = h;
-        if (!hall || !hall.total_rows) throw new Error('Hall not found');
-        fillHeader();
-        renderSeatMap();
-      })
-      .catch(function (err) {
-        document.getElementById('session-page').innerHTML = '<p>Error: ' + (err.message || 'failed to load') + '</p>';
-      });
-
-    if (confirmBtn) {
-      confirmBtn.addEventListener('click', function () {
-        if (!selectedSeat) return;
-        doBooking();
-      });
-    }
-  }
-
-  if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', init);
-  } else {
-    init();
-  }
-})();
-  </script>
+    <script src="static/js/auth.js"></script>
+    <script src="static/js/api.js"></script>
+    <script src="static/js/session.js"></script>
 </body>
 </html>
