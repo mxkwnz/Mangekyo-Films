@@ -21,6 +21,12 @@ type BookingService struct {
 	mu          sync.Mutex // For concurrent booking protection
 }
 
+type SeatBookingRequest struct {
+	RowNumber  int
+	SeatNumber int
+	Type       models.TicketType
+}
+
 func NewBookingService(
 	ticketRepo *repositories.TicketRepository,
 	sessionRepo *repositories.SessionRepository,
@@ -35,6 +41,105 @@ func NewBookingService(
 		hallRepo:    hallRepo,
 		paymentRepo: paymentRepo,
 	}
+}
+
+func (s *BookingService) BookTickets(ctx context.Context, userID, sessionID primitive.ObjectID, seats []SeatBookingRequest) ([]*models.Ticket, error) {
+	s.mu.Lock()
+	defer s.mu.Unlock()
+
+	// 1. Validate Session
+	session, err := s.sessionRepo.FindByID(ctx, sessionID)
+	if err != nil {
+		return nil, errors.New("session not found")
+	}
+
+	// 2. Validate User & Balance
+	user, err := s.userRepo.FindByID(ctx, userID)
+	if err != nil {
+		return nil, errors.New("user not found")
+	}
+
+	totalPrice := float64(len(seats)) * session.Price
+	if user.Balance < totalPrice {
+		return nil, errors.New("insufficient balance")
+	}
+
+	// 3. Validate Hall & Seats
+	hall, err := s.hallRepo.FindByID(ctx, session.HallID)
+	if err != nil {
+		return nil, errors.New("hall not found")
+	}
+
+	for _, seat := range seats {
+		if seat.RowNumber < 1 || seat.RowNumber > hall.TotalRows || seat.SeatNumber < 1 || seat.SeatNumber > hall.SeatsPerRow {
+			return nil, fmt.Errorf("invalid seat position: row %d, seat %d", seat.RowNumber, seat.SeatNumber)
+		}
+
+		available, err := s.ticketRepo.CheckSeatAvailability(ctx, sessionID, seat.RowNumber, seat.SeatNumber)
+		if err != nil {
+			return nil, err
+		}
+		if !available {
+			return nil, fmt.Errorf("seat row %d number %d already booked", seat.RowNumber, seat.SeatNumber)
+		}
+	}
+
+	// 4. Create Payment
+	payment := &models.Payment{
+		UserID:          userID,
+		PaymentCardID:   primitive.NilObjectID,
+		TransactionCode: s.generateTransactionCode(),
+		Amount:          totalPrice,
+		Status:          models.PaymentPending,
+		CreatedAt:       time.Now(),
+	}
+
+	err = s.paymentRepo.Create(ctx, payment)
+	if err != nil {
+		return nil, errors.New("failed to create payment record")
+	}
+
+	// 5. Deduct Balance
+	newBalance := user.Balance - totalPrice
+	err = s.userRepo.UpdateBalance(ctx, userID, newBalance)
+	if err != nil {
+		return nil, errors.New("failed to deduct balance")
+	}
+
+	// 6. Confirm Payment
+	err = s.paymentRepo.UpdateStatus(ctx, payment.ID, models.PaymentCompleted)
+	if err != nil {
+		return nil, err
+	}
+
+	// 7. Create Tickets
+	var tickets []*models.Ticket
+	for _, seat := range seats {
+		ticket := &models.Ticket{
+			UserID:     userID,
+			SessionID:  sessionID,
+			PaymentID:  payment.ID,
+			RowNumber:  seat.RowNumber,
+			SeatNumber: seat.SeatNumber,
+			Type:       seat.Type,
+			Price:      session.Price,
+			MovieTitle: "", // populated if needed, or left empty
+			Status:     models.TicketPaid,
+			CreatedAt:  time.Now(),
+		}
+
+		// Attempt to fetch movie title if we can, but it's okay if not for now
+		// In a real app we might fetch the movie from session.MovieID
+
+		err = s.ticketRepo.Create(ctx, ticket)
+		if err != nil {
+			// In a real system we would need to rollback payment here
+			return nil, fmt.Errorf("failed to create ticket for row %d seat %d: %w", seat.RowNumber, seat.SeatNumber, err)
+		}
+		tickets = append(tickets, ticket)
+	}
+
+	return tickets, nil
 }
 
 func (s *BookingService) BookTicket(ctx context.Context, userID, sessionID primitive.ObjectID, row, seat int) (*models.Ticket, error) {

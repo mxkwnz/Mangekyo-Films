@@ -1,8 +1,9 @@
 package models
 
 import (
-	"go.mongodb.org/mongo-driver/bson/primitive"
 	"time"
+
+	"go.mongodb.org/mongo-driver/bson/primitive"
 )
 
 type Movie struct {
@@ -11,6 +12,8 @@ type Movie struct {
 	Duration    int                  `json:"duration" bson:"duration"` // in minutes
 	Description string               `json:"description" bson:"description"`
 	PosterURL   string               `json:"poster_url" bson:"poster_url"`
+	TrailerURL  string               `json:"trailer_url" bson:"trailer_url"`
+	AgeLimit    int                  `json:"age_limit" bson:"age_limit"`
 	Rating      float64              `json:"rating" bson:"rating"`
 	Genres      []primitive.ObjectID `json:"genres" bson:"genres"`
 	CreatedAt   time.Time            `json:"created_at" bson:"created_at"`
