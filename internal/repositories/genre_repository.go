@@ -3,6 +3,7 @@ package repositories
 import (
 	"cinema-system/internal/models"
 	"context"
+
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 	"go.mongodb.org/mongo-driver/mongo"
@@ -13,7 +14,7 @@ type GenreRepository struct {
 }
 
 func NewGenreRepository(db *mongo.Database) *GenreRepository {
-	return &GenRepository{
+	return &GenreRepository{
 		collection: db.Collection("genres"),
 	}
 }
