@@ -17,7 +17,7 @@ const (
 type Ticket struct {
 	ID         primitive.ObjectID `json:"id" bson:"_id,omitempty"`
 	SessionID  primitive.ObjectID `json:"session_id" bson:"session_id"`
-	UserID     primitive.ObjectID `json:"user_id" bson:"user_id"`
+	PaymentID  primitive.ObjectID `json:"payment_id" bson:"payment_id"`
 	RowNumber  int                `json:"row_number" bson:"row_number"`
 	SeatNumber int                `json:"seat_number" bson:"seat_number"`
 	Status     TicketStatus       `json:"status" bson:"status"`

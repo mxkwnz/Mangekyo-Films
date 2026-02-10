@@ -8,12 +8,14 @@ import (
 )
 
 type Router struct {
-	authHandler    *handlers.AuthHandler
-	movieHandler   *handlers.MovieHandler
-	sessionHandler *handlers.SessionHandler
-	bookingHandler *handlers.BookingHandler
-	reviewHandler  *handlers.ReviewHandler
-	hallHandler    *handlers.HallHandler
+	authHandler        *handlers.AuthHandler
+	movieHandler       *handlers.MovieHandler
+	sessionHandler     *handlers.SessionHandler
+	bookingHandler     *handlers.BookingHandler
+	reviewHandler      *handlers.ReviewHandler
+	hallHandler        *handlers.HallHandler
+	paymentCardHandler *handlers.PaymentCardHandler
+	paymentHandler     *handlers.PaymentHandler
 }
 
 func NewRouter(
@@ -23,14 +25,18 @@ func NewRouter(
 	bookingHandler *handlers.BookingHandler,
 	reviewHandler *handlers.ReviewHandler,
 	hallHandler *handlers.HallHandler,
+	paymentCardHandler *handlers.PaymentCardHandler,
+	paymentHandler *handlers.PaymentHandler,
 ) *Router {
 	return &Router{
-		authHandler:    authHandler,
-		movieHandler:   movieHandler,
-		sessionHandler: sessionHandler,
-		bookingHandler: bookingHandler,
-		reviewHandler:  reviewHandler,
-		hallHandler:    hallHandler,
+		authHandler:        authHandler,
+		movieHandler:       movieHandler,
+		sessionHandler:     sessionHandler,
+		bookingHandler:     bookingHandler,
+		reviewHandler:      reviewHandler,
+		hallHandler:        hallHandler,
+		paymentCardHandler: paymentCardHandler,
+		paymentHandler:     paymentHandler,
 	}
 }
 
@@ -60,6 +66,18 @@ func (r *Router) Setup() *gin.Engine {
 
 		user.POST("/reviews", r.reviewHandler.CreateReview)
 		user.GET("/reviews/movie/:movieId", r.reviewHandler.GetMovieReviews)
+
+		// Payment card routes
+		user.POST("/payment-cards", r.paymentCardHandler.CreateCard)
+		user.GET("/payment-cards", r.paymentCardHandler.GetMyCards)
+		user.GET("/payment-cards/:id", r.paymentCardHandler.GetCard)
+		user.DELETE("/payment-cards/:id", r.paymentCardHandler.DeleteCard)
+
+		// Payment routes
+		user.POST("/payments/topup", r.paymentHandler.TopUpBalance)
+		user.GET("/payments", r.paymentHandler.GetMyPayments)
+		user.GET("/payments/:id", r.paymentHandler.GetPayment)
+		user.POST("/payments/:id/refund", r.paymentHandler.RefundPayment)
 	}
 
 	admin := router.Group("/api/admin")
@@ -81,6 +99,11 @@ func (r *Router) Setup() *gin.Engine {
 		admin.GET("/bookings/session/:sessionId", r.bookingHandler.GetSessionTickets)
 
 		admin.DELETE("/reviews/:id", r.reviewHandler.DeleteReview)
+
+		// Admin payment routes
+		admin.GET("/payments", r.paymentHandler.GetAllPayments)
+		admin.GET("/payments/user/:userId", r.paymentHandler.GetUserPaymentsByID)
+		admin.GET("/payment-cards/user/:userId", r.paymentCardHandler.GetUserCards)
 	}
 
 	return router

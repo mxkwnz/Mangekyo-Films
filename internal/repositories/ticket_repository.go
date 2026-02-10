@@ -36,8 +36,17 @@ func (r *TicketRepository) FindByID(ctx context.Context, id primitive.ObjectID) 
 	return &ticket, nil
 }
 
-func (r *TicketRepository) GetByUser(ctx context.Context, userID primitive.ObjectID) ([]models.Ticket, error) {
-	cursor, err := r.collection.Find(ctx, bson.M{"user_id": userID})
+func (r *TicketRepository) GetByPayment(ctx context.Context, paymentID primitive.ObjectID) (*models.Ticket, error) {
+	var ticket models.Ticket
+	err := r.collection.FindOne(ctx, bson.M{"payment_id": paymentID}).Decode(&ticket)
+	if err != nil {
+		return nil, err
+	}
+	return &ticket, nil
+}
+
+func (r *TicketRepository) GetByPaymentIDs(ctx context.Context, paymentIDs []primitive.ObjectID) ([]models.Ticket, error) {
+	cursor, err := r.collection.Find(ctx, bson.M{"payment_id": bson.M{"$in": paymentIDs}})
 	if err != nil {
 		return nil, err
 	}
