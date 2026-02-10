@@ -34,7 +34,6 @@ func (s *SessionService) CreateSession(ctx context.Context, session *models.Sess
 		return errors.New("movie not found")
 	}
 
-	// Validate hall exists
 	_, err = s.hallRepo.FindByID(ctx, session.HallID)
 	if err != nil {
 		return errors.New("hall not found")

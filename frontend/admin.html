@@ -1,281 +1,125 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Admin — Cinema</title>
-  <link rel="stylesheet" href="static/css/auth-modal.css">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Admin Panel - Mangekyo Cinema</title>
+    <link rel="stylesheet" href="static/css/main.css">
+    <link rel="stylesheet" href="static/css/auth-modal.css">
 </head>
 <body>
-  <header>
-    <h1>Cinema</h1>
-    <nav>
-      <a href="index.html">Home</a>
-      <a href="profile.html">Profile</a>
-      <a href="admin.html">Admin</a>
-      <span id="user-span"></span>
+    <nav class="navbar">
+        <div class="container">
+            <div class="logo">Mangekyo Cinema</div>
+            <div class="nav-links">
+                <ul>
+                    <li><a href="index.html">Home</a></li>
+                    <li><a href="profile.html">Profile</a></li>
+                    <li><a href="admin.html">Admin</a></li>
+                </ul>
+                <span id="user-span" class="nav-user"></span>
+            </div>
+        </div>
     </nav>
-  </header>
-  <main id="admin-main">
-    <div id="admin-forbidden" style="display:none;">
-      <h2>Access denied</h2>
-      <p>This page is for administrators only.</p>
-      <a href="index.html">Back to Home</a>
-    </div>
-    <div id="admin-content" style="display:none;">
-      <h2>Admin panel</h2>
-      <p id="admin-error" class="error-msg" style="display:none;"></p>
 
-      <section>
-        <h3>Halls</h3>
-        <form id="form-hall">
-          <input type="text" name="name" placeholder="Hall name" required />
-          <input type="text" name="location" placeholder="Location" required />
-          <input type="number" name="total_rows" placeholder="Rows" min="1" required />
-          <input type="number" name="seats_per_row" placeholder="Seats per row" min="1" required />
-          <button type="submit">Add hall</button>
-        </form>
-        <ul id="admin-halls"></ul>
-      </section>
+    <main id="admin-main">
+        <div class="container">
+            <!-- Access Denied -->
+            <div id="admin-forbidden" style="display:none;">
+                <h2>Access Denied</h2>
+                <p>This page is for administrators only.</p>
+                <a href="index.html" class="btn" style="margin-top: 20px;">Back to Home</a>
+            </div>
 
-      <section>
-        <h3>Movies</h3>
-        <form id="form-movie">
-          <input type="text" name="name" placeholder="Title" required />
-          <input type="number" name="duration" placeholder="Duration (min)" min="1" required />
-          <input type="text" name="description" placeholder="Description" />
-          <input type="text" name="poster_url" placeholder="Poster URL" />
-          <input type="number" name="rating" placeholder="Rating" step="0.1" min="0" max="10" />
-          <button type="submit">Add movie</button>
-        </form>
-        <ul id="admin-movies"></ul>
-      </section>
+            <!-- Admin Content -->
+            <div id="admin-content" style="display:none;">
+                <section class="page-heading">
+                    <h1>Admin Panel</h1>
+                    <p>Manage halls, movies, sessions, and view all bookings.</p>
+                </section>
 
-      <section>
-        <h3>Sessions</h3>
-        <form id="form-session">
-          <input type="text" name="movie_id" placeholder="Movie ID" required />
-          <input type="text" name="hall_id" placeholder="Hall ID" required />
-          <input type="datetime-local" name="start_time" required />
-          <input type="number" name="price" placeholder="Price" min="0" step="0.01" required />
-          <button type="submit">Add session</button>
-        </form>
-        <ul id="admin-sessions"></ul>
-      </section>
+                <p id="admin-error" class="text-error" style="display:none;"></p>
 
-      <section>
-        <h3>All bookings</h3>
-        <ul id="admin-bookings"></ul>
-      </section>
-    </div>
-  </main>
-  <script src="static/js/auth.js"></script>
-  <script>
-(function () {
-  var API_BASE = window.API_BASE || '/api';
-  var ADMIN_BASE = API_BASE + '/admin';
+                <!-- Halls Management -->
+                <section>
+                    <h3>Hall Management</h3>
+                    <form id="form-hall">
+                        <input type="text" name="name" placeholder="Hall name (e.g., Hall 1 - IMAX)" required />
+                        <input type="text" name="location" placeholder="Location (e.g., Floor 1)" required />
+                        <input type="number" name="total_rows" placeholder="Total rows" min="1" required />
+                        <input type="number" name="seats_per_row" placeholder="Seats per row" min="1" required />
+                        <button type="submit" class="btn">Add Hall</button>
+                    </form>
+                    <ul id="admin-halls"></ul>
+                </section>
 
-  function authHeaders() {
-    return auth.getAuthHeaders();
-  }
+                <!-- Movies Management -->
+                <section>
+                    <h3>Movie Management</h3>
+                    <form id="form-movie">
+                        <input type="text" name="name" placeholder="Movie title" required />
+                        <input type="number" name="year" placeholder="Year" min="1900" max="2100" required />
+                        <input type="number" name="duration" placeholder="Duration (minutes)" min="1" required />
+                        <textarea name="description" placeholder="Description" rows="2" style="grid-column: 1 / -1;"></textarea>
+                        <input type="text" name="genres" placeholder="Genres (comma-separated)" />
+                        <input type="text" name="age_restriction" placeholder="Age restriction (e.g., PG-13, R)" />
+                        <input type="url" name="poster_url" placeholder="Poster URL" />
+                        <input type="url" name="trailer_url" placeholder="Trailer URL (YouTube embed)" />
+                        <input type="number" name="rating" placeholder="Rating (0-10)" step="0.1" min="0" max="10" />
+                        <button type="submit" class="btn">Add Movie</button>
+                    </form>
+                    <ul id="admin-movies"></ul>
+                </section>
 
-  function showError(msg) {
-    var el = document.getElementById('admin-error');
-    el.textContent = msg || '';
-    el.style.display = msg ? 'block' : 'none';
-  }
+                <!-- Sessions Management -->
+                <section>
+                    <h3>Session Management</h3>
+                    <form id="form-session">
+                        <input type="text" name="movie_id" placeholder="Movie ID" required />
+                        <input type="text" name="hall_id" placeholder="Hall ID" required />
+                        <input type="datetime-local" name="start_time" required />
+                        <input type="number" name="price" placeholder="Price" min="0" step="0.01" required />
+                        <select name="format">
+                            <option value="">Format</option>
+                            <option value="2D">2D</option>
+                            <option value="3D">3D</option>
+                            <option value="IMAX">IMAX</option>
+                            <option value="4DX">4DX</option>
+                        </select>
+                        <select name="language">
+                            <option value="">Language</option>
+                            <option value="English">English</option>
+                            <option value="Russian">Russian</option>
+                            <option value="Kazakh">Kazakh</option>
+                            <option value="Subtitled">Subtitled</option>
+                        </select>
+                        <input type="text" name="age_restriction" placeholder="Age restriction (optional)" />
+                        <button type="submit" class="btn">Add Session</button>
+                    </form>
+                    <ul id="admin-sessions"></ul>
+                </section>
 
-  function updateNav() {
-    var span = document.getElementById('user-span');
-    if (!span) return;
-    if (auth.isLoggedIn()) {
-      var u = auth.getUser();
-      span.innerHTML = 'Hi, ' + (u.first_name || u.email) + ' | <button type="button" id="logout-btn">Log out</button>';
-      document.getElementById('logout-btn').onclick = function () { auth.logout(); location.href = 'index.html'; };
-    } else {
-      span.innerHTML = '<a href="index.html">Back to Home</a>';
-    }
-  }
+                <!-- Bookings Overview -->
+                <section>
+                    <h3>All Bookings</h3>
+                    <p style="color: #b3b3b3; margin-bottom: 15px;">
+                        View all customer bookings across all sessions.
+                    </p>
+                    <ul id="admin-bookings"></ul>
+                    <p id="no-bookings" style="display:none; text-align: center; color: #666; padding: 20px;">
+                        No bookings yet.
+                    </p>
+                </section>
+            </div>
+        </div>
+    </main>
 
-  function loadHalls() {
-    fetch(ADMIN_BASE + '/halls', { headers: authHeaders() })
-      .then(function (r) { return r.json(); })
-      .then(function (data) {
-        var ul = document.getElementById('admin-halls');
-        ul.innerHTML = '';
-        (Array.isArray(data) ? data : []).forEach(function (h) {
-          var li = document.createElement('li');
-          li.innerHTML = (h.name || '') + ' — ' + (h.location || '') + ' (rows: ' + (h.total_rows || 0) + ', seats/row: ' + (h.seats_per_row || 0) + ') <button type="button" class="del-hall" data-id="' + (h.id || '') + '">Delete</button>';
-          ul.appendChild(li);
-        });
-        ul.querySelectorAll('.del-hall').forEach(function (btn) {
-          btn.onclick = function () {
-            var id = btn.getAttribute('data-id');
-            if (!id || !confirm('Delete this hall?')) return;
-            fetch(ADMIN_BASE + '/halls/' + id, { method: 'DELETE', headers: authHeaders() })
-              .then(function (r) { return r.json(); })
-              .then(function () { loadHalls(); })
-              .catch(function () { showError('Delete failed'); });
-          };
-        });
-      })
-      .catch(function () { showError('Failed to load halls'); });
-  }
+    <footer>
+        <p>&copy; 2026 Mangekyo Cinema. All rights reserved.</p>
+    </footer>
 
-  function loadMovies() {
-    fetch(API_BASE + '/movies')
-      .then(function (r) { return r.json(); })
-      .then(function (data) {
-        var ul = document.getElementById('admin-movies');
-        ul.innerHTML = '';
-        (Array.isArray(data) ? data : []).forEach(function (m) {
-          var li = document.createElement('li');
-          li.innerHTML = (m.name || '') + ' (' + (m.duration || 0) + ' min) — ID: ' + (m.id || '') + ' <button type="button" class="del-movie" data-id="' + (m.id || '') + '">Delete</button>';
-          ul.appendChild(li);
-        });
-        ul.querySelectorAll('.del-movie').forEach(function (btn) {
-          btn.onclick = function () {
-            var id = btn.getAttribute('data-id');
-            if (!id || !confirm('Delete this movie?')) return;
-            fetch(ADMIN_BASE + '/movies/' + id, { method: 'DELETE', headers: authHeaders() })
-              .then(function (r) { return r.json(); })
-              .then(function () { loadMovies(); })
-              .catch(function () { showError('Delete failed'); });
-          };
-        });
-      })
-      .catch(function () { showError('Failed to load movies'); });
-  }
-
-  function loadSessions() {
-    fetch(API_BASE + '/sessions/upcoming')
-      .then(function (r) { return r.json(); })
-      .then(function (data) {
-        var ul = document.getElementById('admin-sessions');
-        ul.innerHTML = '';
-        (Array.isArray(data) ? data : []).forEach(function (s) {
-          var start = s.start_time ? new Date(s.start_time).toLocaleString() : '';
-          var li = document.createElement('li');
-          li.innerHTML = 'ID: ' + (s.id || '') + ' — movie: ' + (s.movie_id || '') + ', hall: ' + (s.hall_id || '') + ' — ' + start + ' <button type="button" class="del-session" data-id="' + (s.id || '') + '">Delete</button>';
-          ul.appendChild(li);
-        });
-        ul.querySelectorAll('.del-session').forEach(function (btn) {
-          btn.onclick = function () {
-            var id = btn.getAttribute('data-id');
-            if (!id || !confirm('Delete this session?')) return;
-            fetch(ADMIN_BASE + '/sessions/' + id, { method: 'DELETE', headers: authHeaders() })
-              .then(function (r) { return r.json(); })
-              .then(function () { loadSessions(); })
-              .catch(function () { showError('Delete failed'); });
-          };
-        });
-      })
-      .catch(function () { showError('Failed to load sessions'); });
-  }
-
-  function loadBookings() {
-    fetch(ADMIN_BASE + '/bookings', { headers: authHeaders() })
-      .then(function (r) { return r.json(); })
-      .then(function (data) {
-        var ul = document.getElementById('admin-bookings');
-        ul.innerHTML = '';
-        (Array.isArray(data) ? data : []).forEach(function (b) {
-          var li = document.createElement('li');
-          li.textContent = 'Session: ' + (b.session_id || '') + ' — row ' + (b.row_number || '') + ', seat ' + (b.seat_number || '') + ' — ' + (b.status || '');
-          ul.appendChild(li);
-        });
-      })
-      .catch(function () { showError('Failed to load bookings'); });
-  }
-
-  function init() {
-    updateNav();
-    if (!auth.isLoggedIn() || !auth.isAdmin()) {
-      location.replace('index.html');
-      return;
-    }
-    document.getElementById('admin-forbidden').style.display = 'none';
-    document.getElementById('admin-content').style.display = 'block';
-
-    loadHalls();
-    loadMovies();
-    loadSessions();
-    loadBookings();
-
-    document.getElementById('form-hall').onsubmit = function (e) {
-      e.preventDefault();
-      var f = this;
-      var payload = {
-        name: f.name.value.trim(),
-        location: f.location.value.trim(),
-        total_rows: parseInt(f.total_rows.value, 10) || 0,
-        seats_per_row: parseInt(f.seats_per_row.value, 10) || 0
-      };
-      fetch(ADMIN_BASE + '/halls', {
-        method: 'POST',
-        headers: authHeaders(),
-        body: JSON.stringify(payload)
-      })
-        .then(function (r) { return r.json().then(function (d) { return { ok: r.ok, data: d }; }); })
-        .then(function (res) {
-          if (res.ok) { f.reset(); loadHalls(); showError(''); } else showError(res.data.error || 'Error');
-        })
-        .catch(function () { showError('Network error'); });
-    };
-
-    document.getElementById('form-movie').onsubmit = function (e) {
-      e.preventDefault();
-      var f = this;
-      var payload = {
-        name: f.name.value.trim(),
-        duration: parseInt(f.duration.value, 10) || 0,
-        description: (f.description && f.description.value) ? f.description.value.trim() : '',
-        poster_url: (f.poster_url && f.poster_url.value) ? f.poster_url.value.trim() : '',
-        rating: parseFloat(f.rating.value) || 0
-      };
-      fetch(ADMIN_BASE + '/movies', {
-        method: 'POST',
-        headers: authHeaders(),
-        body: JSON.stringify(payload)
-      })
-        .then(function (r) { return r.json().then(function (d) { return { ok: r.ok, data: d }; }); })
-        .then(function (res) {
-          if (res.ok) { f.reset(); loadMovies(); showError(''); } else showError(res.data.error || 'Error');
-        })
-        .catch(function () { showError('Network error'); });
-    };
-
-    document.getElementById('form-session').onsubmit = function (e) {
-      e.preventDefault();
-      var f = this;
-      var startStr = f.start_time.value;
-      if (!startStr) { showError('Enter date and time'); return; }
-      var start = new Date(startStr);
-      var payload = {
-        movie_id: f.movie_id.value.trim(),
-        hall_id: f.hall_id.value.trim(),
-        start_time: start.toISOString(),
-        price: parseFloat(f.price.value) || 0
-      };
-      fetch(ADMIN_BASE + '/sessions', {
-        method: 'POST',
-        headers: authHeaders(),
-        body: JSON.stringify(payload)
-      })
-        .then(function (r) { return r.json().then(function (d) { return { ok: r.ok, data: d }; }); })
-        .then(function (res) {
-          if (res.ok) { f.reset(); loadSessions(); showError(''); } else showError(res.data.error || 'Error');
-        })
-        .catch(function () { showError('Network error'); });
-    };
-  }
-
-  if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', init);
-  } else {
-    init();
-  }
-})();
-  </script>
+    <script src="static/js/auth.js"></script>
+    <script src="static/js/api.js"></script>
+    <script src="static/js/admin.js"></script>
 </body>
 </html>

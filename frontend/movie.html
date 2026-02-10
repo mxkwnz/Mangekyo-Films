@@ -1,155 +1,104 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Movie — Cinema</title>
-  <link rel="stylesheet" href="static/css/main.css">
-  <link rel="stylesheet" href="static/css/auth-modal.css">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Movie Details - Mangekyo Cinema</title>
+    <link rel="stylesheet" href="static/css/main.css">
+    <link rel="stylesheet" href="static/css/auth-modal.css">
 </head>
 <body>
-  <header class="site-header">
-    <div class="site-header-inner">
-      <div class="site-header-title">Mangekyo Cinema</div>
-      <nav class="site-nav">
-        <div class="site-nav-primary">
-          <a href="index.html">Home</a>
-          <a href="profile.html" id="movie-nav-profile" style="display:none;">Profile</a>
-          <a href="admin.html" id="movie-nav-admin" style="display:none;">Admin</a>
+    <nav class="navbar">
+        <div class="container">
+            <div class="logo">Mangekyo Cinema</div>
+            <div class="nav-links">
+                <ul>
+                    <li><a href="index.html">Home</a></li>
+                    <li><a href="profile.html" id="movie-nav-profile" style="display:none;">Profile</a></li>
+                    <li><a href="admin.html" id="movie-nav-admin" style="display:none;">Admin</a></li>
+                </ul>
+                <span id="movie-user-span" class="nav-user"></span>
+            </div>
         </div>
-        <span id="movie-user-span" class="site-nav-user"></span>
-      </nav>
-    </div>
-  </header>
-  <main id="movie-main">
-    <div class="page-shell">
-      <section id="movie-header" style="display:flex;gap:1.5rem;align-items:flex-start;flex-wrap:wrap;margin-bottom:1.5rem;">
-        <div style="flex:0 0 220px;max-width:220px;">
-          <img id="movie-poster" src="" alt="Poster" style="border-radius:12px;box-shadow:0 10px 24px rgba(0,0,0,0.18);" />
+    </nav>
+
+    <main id="movie-main">
+        <div class="container">
+            <section id="movie-header">
+                <div>
+                    <img id="movie-poster" src="" alt="Movie Poster" />
+                </div>
+                <div id="movie-info">
+                    <h1 id="movie-title"></h1>
+                    
+                    <div class="badge-row" id="movie-badges" style="margin-bottom: 15px;"></div>
+                    
+                    <p id="movie-meta-year" class="card-meta"></p>
+                    <p id="movie-duration" class="card-meta"></p>
+                    <p id="movie-meta-genres" class="card-meta"></p>
+                    <p id="movie-rating" class="card-meta"></p>
+                    
+                    <p id="movie-description" style="margin-top: 20px; line-height: 1.8;"></p>
+                    
+                    <div id="movie-trailer-wrap" style="margin-top: 25px; display: none;">
+                        <h3 style="margin-bottom: 10px;">Trailer</h3>
+                        <iframe id="movie-trailer" width="560" height="315" src="" 
+                                title="Movie Trailer" frameborder="0" 
+                                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" 
+                                allowfullscreen></iframe>
+                    </div>
+                    
+                    <div style="margin-top: 30px;">
+                        <button type="button" id="buy-tickets-btn" class="btn">Buy Tickets</button>
+                    </div>
+                </div>
+            </section>
+
+            <section id="reviews-section" style="margin-top: 3rem;">
+                <h2>Reviews & Ratings</h2>
+                
+                <!-- Rating form (only shown if user attended a session) -->
+                <div id="rating-form-wrap" style="display:none; margin-bottom: 30px;">
+                    <h3 style="margin-bottom: 15px; font-size: 1.2rem;">Leave Your Rating</h3>
+                    <form id="rating-form" style="background: #222; padding: 20px; border-radius: 8px;">
+                        <div class="form-group">
+                            <label for="rating-input">Rating (1-5 stars)</label>
+                            <select id="rating-input" class="form-control" required>
+                                <option value="">Select rating...</option>
+                                <option value="1">1 - Poor</option>
+                                <option value="2">2 - Fair</option>
+                                <option value="3">3 - Good</option>
+                                <option value="4">4 - Very Good</option>
+                                <option value="5">5 - Excellent</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label for="comment-input">Comment (optional)</label>
+                            <textarea id="comment-input" class="form-control" rows="3" 
+                                      placeholder="Share your thoughts about the movie..."></textarea>
+                        </div>
+                        <button type="submit" class="btn">Submit Rating</button>
+                        <p id="rating-error" class="text-error" style="display:none; margin-top: 10px;"></p>
+                    </form>
+                </div>
+
+                <h3 style="margin-bottom: 15px; font-size: 1.2rem;">User Reviews</h3>
+                <ul id="reviews-list"></ul>
+                <p id="no-reviews" style="display:none; color: #666; text-align: center; padding: 40px;">
+                    No reviews yet. Be the first to rate this movie!
+                </p>
+            </section>
+
+            <p id="movie-error" class="text-error" style="display:none;"></p>
         </div>
-        <div id="movie-info" style="flex:1 1 260px;min-width:0;">
-          <h1 id="movie-title" style="margin-top:0;margin-bottom:0.5rem;"></h1>
-          <p id="movie-duration" class="card-meta"></p>
-          <p id="movie-meta-genres" class="card-meta"></p>
-          <p id="movie-description"></p>
-          <p id="movie-rating" class="card-meta"></p>
-          <div id="movie-trailer-wrap" style="margin-top:1rem;">
-            <p class="card-meta">Trailer</p>
-            <iframe id="movie-trailer" width="560" height="315" src="" title="Trailer" frameborder="0" allowfullscreen></iframe>
-          </div>
-          <div style="margin-top:1.25rem;">
-            <button type="button" id="buy-tickets-btn" class="btn btn-primary">Buy tickets</button>
-          </div>
-        </div>
-      </section>
+    </main>
 
-      <section id="reviews-section" style="margin-top:2rem;">
-        <h2>Reviews</h2>
-        <ul id="reviews-list"></ul>
-      </section>
+    <footer>
+        <p>&copy; 2026 Mangekyo Cinema. All rights reserved.</p>
+    </footer>
 
-      <p id="movie-error" class="error-msg" style="display:none;"></p>
-    </div>
-  </main>
-  <script src="static/js/auth.js"></script>
-  <script src="static/js/api.js"></script>
-  <script>
-(function () {
-  function getParam(name) {
-    var m = new RegExp('([?&])' + name + '=([^&]*)').exec(location.search);
-    return m ? decodeURIComponent(m[2]) : null;
-  }
-
-  function updateNav() {
-    var navProfile = document.getElementById('movie-nav-profile');
-    var navAdmin = document.getElementById('movie-nav-admin');
-    var span = document.getElementById('movie-user-span');
-    if (window.auth && auth.isCustomer && navProfile) navProfile.style.display = auth.isCustomer() ? '' : 'none';
-    if (window.auth && auth.isAdmin && navAdmin) navAdmin.style.display = auth.isAdmin() ? '' : 'none';
-    if (!span) return;
-    if (window.auth && auth.isLoggedIn && auth.isLoggedIn()) {
-      var u = auth.getUser();
-      span.innerHTML =
-        (u.first_name || u.email) +
-        ' | <a href="index.html">Home</a> | <a href="profile.html">Profile</a> | <button type="button" id="movie-logout-btn" class="btn btn-ghost">Log out</button>';
-      var btn = document.getElementById('movie-logout-btn');
-      if (btn) btn.onclick = function () { auth.logout(); updateNav(); };
-    } else {
-      span.innerHTML = '<button type="button" id="movie-login-btn" class="btn btn-primary">Login / Register</button>';
-      var loginBtn = document.getElementById('movie-login-btn');
-      if (loginBtn) loginBtn.onclick = function () { if (window.openAuthModal) openAuthModal({ onSuccess: updateNav }); };
-    }
-  }
-
-  var movieId = getParam('id');
-  if (!movieId) {
-    document.getElementById('movie-main').innerHTML = '<p>Specify movie in URL: movie.html?id=...</p>';
-  } else {
-    window.api
-      .fetchMovieDetails(movieId)
-      .then(function (movie) {
-        document.getElementById('movie-poster').src = movie.poster_url || '';
-        document.getElementById('movie-poster').alt = movie.name || 'Poster';
-        document.getElementById('movie-title').textContent = movie.name || 'Untitled';
-        document.getElementById('movie-duration').textContent = 'Duration: ' + (movie.duration || 0) + ' min';
-        var genres = Array.isArray(movie.genres) ? movie.genres : (movie.genres ? String(movie.genres).split(',') : []);
-        document.getElementById('movie-meta-genres').textContent =
-          genres.length ? 'Genres: ' + genres.join(', ') : '';
-        document.getElementById('movie-description').textContent = movie.description || '';
-        document.getElementById('movie-rating').textContent = 'Rating: ' + (movie.rating != null ? movie.rating : '—');
-        var trailer = document.getElementById('movie-trailer');
-        if (movie.trailer_url) {
-          trailer.src = movie.trailer_url;
-          document.getElementById('movie-trailer-wrap').style.display = 'block';
-        } else {
-          document.getElementById('movie-trailer-wrap').style.display = 'none';
-        }
-        return window.api.fetchMovieReviews(movieId);
-      })
-      .then(function (reviews) {
-        var ul = document.getElementById('reviews-list');
-        ul.innerHTML = '';
-        (Array.isArray(reviews) ? reviews : []).forEach(function (r) {
-          var li = document.createElement('li');
-          li.textContent = (r.rating != null ? r.rating + '/5 — ' : '') + (r.comment || '');
-          ul.appendChild(li);
-        });
-      })
-      .catch(function (err) {
-        document.getElementById('movie-error').textContent = err.message || 'Failed to load.';
-        document.getElementById('movie-error').style.display = 'block';
-      });
-  }
-
-  function handleBuyTickets() {
-    if (window.auth && auth.isLoggedIn && auth.isLoggedIn()) {
-      location.href = 'cinemas.html?movieId=' + encodeURIComponent(movieId);
-    } else if (window.openAuthModal) {
-      openAuthModal({
-        onSuccess: function () {
-          updateNav();
-          location.href = 'cinemas.html?movieId=' + encodeURIComponent(movieId);
-        }
-      });
-    } else {
-      location.href = 'cinemas.html?movieId=' + encodeURIComponent(movieId);
-    }
-  }
-
-  function init() {
-    updateNav();
-    var buyBtn = document.getElementById('buy-tickets-btn');
-    if (buyBtn && movieId) {
-      buyBtn.addEventListener('click', handleBuyTickets);
-    }
-  }
-
-  if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', init);
-  } else {
-    init();
-  }
-})();
-  </script>
+    <script src="static/js/auth.js"></script>
+    <script src="static/js/api.js"></script>
+    <script src="static/js/movie.js"></script>
 </body>
 </html>
