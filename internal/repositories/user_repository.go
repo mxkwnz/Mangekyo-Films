@@ -68,3 +68,12 @@ func (r *UserRepository) GetAll(ctx context.Context) ([]models.User, error) {
 	}
 	return users, nil
 }
+
+func (r *UserRepository) Update(ctx context.Context, user *models.User) error {
+	_, err := r.collection.UpdateOne(
+		ctx,
+		bson.M{"_id": user.ID},
+		bson.M{"$set": user},
+	)
+	return err
+}

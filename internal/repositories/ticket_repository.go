@@ -3,6 +3,7 @@ package repositories
 import (
 	"cinema-system/internal/models"
 	"context"
+
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 	"go.mongodb.org/mongo-driver/mongo"
@@ -107,4 +108,24 @@ func (r *TicketRepository) CheckSeatAvailability(ctx context.Context, sessionID 
 		"status":      bson.M{"$ne": models.TicketCancelled},
 	})
 	return count == 0, err
+}
+
+func (r *TicketRepository) GetByUserID(ctx context.Context, userID primitive.ObjectID) ([]models.Ticket, error) {
+	filter := bson.M{
+		"$or": []bson.M{
+			{"user_id": userID},
+			{"user_id": userID.Hex()},
+		},
+	}
+	cursor, err := r.collection.Find(ctx, filter)
+	if err != nil {
+		return nil, err
+	}
+	defer cursor.Close(ctx)
+
+	var tickets []models.Ticket
+	if err = cursor.All(ctx, &tickets); err != nil {
+		return nil, err
+	}
+	return tickets, nil
 }

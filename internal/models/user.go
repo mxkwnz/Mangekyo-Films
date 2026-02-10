@@ -1,8 +1,9 @@
 package models
 
 import (
-	"go.mongodb.org/mongo-driver/bson/primitive"
 	"time"
+
+	"go.mongodb.org/mongo-driver/bson/primitive"
 )
 
 type Role string
@@ -36,4 +37,10 @@ type UserRegistration struct {
 type UserLogin struct {
 	Email    string `json:"email" binding:"required,email"`
 	Password string `json:"password" binding:"required"`
+}
+
+type AuthResponse struct {
+	User    *User  `json:"user"`
+	Token   string `json:"token"`
+	Message string `json:"message"`
 }
