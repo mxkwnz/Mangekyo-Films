@@ -42,12 +42,16 @@ func main() {
 	sessionRepo := repositories.NewSessionRepository(db.Database)
 	ticketRepo := repositories.NewTicketRepository(db.Database)
 	reviewRepo := repositories.NewReviewRepository(db.Database)
+	paymentCardRepo := repositories.NewPaymentCardRepository(db.Database)
+	paymentRepo := repositories.NewPaymentRepository(db.Database)
 
 	authService := services.NewAuthService(userRepo)
 	movieService := services.NewMovieService(movieRepo, genreRepo)
 	sessionService := services.NewSessionService(sessionRepo, hallRepo, movieRepo)
-	bookingService := services.NewBookingService(ticketRepo, sessionRepo, userRepo, hallRepo)
+	bookingService := services.NewBookingService(ticketRepo, sessionRepo, userRepo, hallRepo, paymentRepo)
 	reviewService := services.NewReviewService(reviewRepo, movieRepo, userRepo)
+	paymentCardService := services.NewPaymentCardService(paymentCardRepo, userRepo)
+	paymentService := services.NewPaymentService(paymentRepo, paymentCardRepo, userRepo)
 
 	authHandler := handlers.NewAuthHandler(authService)
 	movieHandler := handlers.NewMovieHandler(movieService)
@@ -55,6 +59,8 @@ func main() {
 	bookingHandler := handlers.NewBookingHandler(bookingService)
 	reviewHandler := handlers.NewReviewHandler(reviewService)
 	hallHandler := handlers.NewHallHandler(hallRepo)
+	paymentCardHandler := handlers.NewPaymentCardHandler(paymentCardService)
+	paymentHandler := handlers.NewPaymentHandler(paymentService)
 
 	router := routes.NewRouter(
 		authHandler,
@@ -63,6 +69,8 @@ func main() {
 		bookingHandler,
 		reviewHandler,
 		hallHandler,
+		paymentCardHandler,
+		paymentHandler,
 	)
 
 	port := os.Getenv("PORT")

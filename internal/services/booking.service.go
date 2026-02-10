@@ -5,6 +5,7 @@ import (
 	"cinema-system/internal/repositories"
 	"context"
 	"errors"
+	"fmt"
 	"sync"
 	"time"
 
@@ -16,6 +17,7 @@ type BookingService struct {
 	sessionRepo *repositories.SessionRepository
 	userRepo    *repositories.UserRepository
 	hallRepo    *repositories.HallRepository
+	paymentRepo *repositories.PaymentRepository
 	mu          sync.Mutex // For concurrent booking protection
 }
 
@@ -24,12 +26,14 @@ func NewBookingService(
 	sessionRepo *repositories.SessionRepository,
 	userRepo *repositories.UserRepository,
 	hallRepo *repositories.HallRepository,
+	paymentRepo *repositories.PaymentRepository,
 ) *BookingService {
 	return &BookingService{
 		ticketRepo:  ticketRepo,
 		sessionRepo: sessionRepo,
 		userRepo:    userRepo,
 		hallRepo:    hallRepo,
+		paymentRepo: paymentRepo,
 	}
 }
 
@@ -68,46 +72,51 @@ func (s *BookingService) BookTicket(ctx context.Context, userID, sessionID primi
 		return nil, errors.New("invalid seat position")
 	}
 
+	payment := &models.Payment{
+		UserID:          userID,
+		PaymentCardID:   primitive.NilObjectID,
+		TransactionCode: s.generateTransactionCode(),
+		Amount:          session.Price,
+		Status:          models.PaymentPending,
+		CreatedAt:       time.Now(),
+	}
+
+	err = s.paymentRepo.Create(ctx, payment)
+	if err != nil {
+		return nil, errors.New("failed to create payment record")
+	}
+
+	newBalance := user.Balance - session.Price
+	err = s.userRepo.UpdateBalance(ctx, userID, newBalance)
+	if err != nil {
+		return nil, errors.New("failed to deduct balance")
+	}
+
+	err = s.paymentRepo.UpdateStatus(ctx, payment.ID, models.PaymentCompleted)
+	if err != nil {
+		return nil, err
+	}
+
 	ticket := &models.Ticket{
 		SessionID:  sessionID,
-		UserID:     userID,
+		PaymentID:  payment.ID,
 		RowNumber:  row,
 		SeatNumber: seat,
-		Status:     models.TicketBooked,
+		Status:     models.TicketPaid,
 		CreatedAt:  time.Now(),
 	}
 
-	errChan := make(chan error, 2)
-	var wg sync.WaitGroup
-	wg.Add(2)
-
-	go func() {
-		defer wg.Done()
-		if err := s.ticketRepo.Create(ctx, ticket); err != nil {
-			errChan <- err
-		}
-	}()
-
-	go func() {
-		defer wg.Done()
-		newBalance := user.Balance - session.Price
-		if err := s.userRepo.UpdateBalance(ctx, userID, newBalance); err != nil {
-			errChan <- err
-		}
-	}()
-
-	wg.Wait()
-	close(errChan)
-
-	for err := range errChan {
-		if err != nil {
-			return nil, err
-		}
+	err = s.ticketRepo.Create(ctx, ticket)
+	if err != nil {
+		return nil, err
 	}
 
-	s.ticketRepo.UpdateStatus(ctx, ticket.ID, models.TicketPaid)
-
 	return ticket, nil
+}
+
+func (s *BookingService) generateTransactionCode() string {
+	timestamp := time.Now().Unix()
+	return fmt.Sprintf("TXN-%d-%s", timestamp, primitive.NewObjectID().Hex()[:8])
 }
 
 func (s *BookingService) CancelTicket(ctx context.Context, ticketID, userID primitive.ObjectID) error {
@@ -116,7 +125,12 @@ func (s *BookingService) CancelTicket(ctx context.Context, ticketID, userID prim
 		return errors.New("ticket not found")
 	}
 
-	if ticket.UserID != userID {
+	payment, err := s.paymentRepo.FindByID(ctx, ticket.PaymentID)
+	if err != nil {
+		return errors.New("payment not found")
+	}
+
+	if payment.UserID != userID {
 		return errors.New("unauthorized to cancel this ticket")
 	}
 
@@ -139,11 +153,29 @@ func (s *BookingService) CancelTicket(ctx context.Context, ticketID, userID prim
 		return err
 	}
 
+	if err := s.paymentRepo.UpdateStatus(ctx, payment.ID, models.PaymentRefunded); err != nil {
+		return err
+	}
+
 	return s.ticketRepo.UpdateStatus(ctx, ticketID, models.TicketCancelled)
 }
 
 func (s *BookingService) GetUserTickets(ctx context.Context, userID primitive.ObjectID) ([]models.Ticket, error) {
-	return s.ticketRepo.GetByUser(ctx, userID)
+	payments, err := s.paymentRepo.FindByUserID(ctx, userID)
+	if err != nil {
+		return nil, err
+	}
+
+	if len(payments) == 0 {
+		return []models.Ticket{}, nil
+	}
+
+	paymentIDs := make([]primitive.ObjectID, len(payments))
+	for i, payment := range payments {
+		paymentIDs[i] = payment.ID
+	}
+
+	return s.ticketRepo.GetByPaymentIDs(ctx, paymentIDs)
 }
 
 func (s *BookingService) GetSessionTickets(ctx context.Context, sessionID primitive.ObjectID) ([]models.Ticket, error) {
@@ -154,13 +186,18 @@ func (s *BookingService) GetAllBookings(ctx context.Context) ([]models.Ticket, e
 	return s.ticketRepo.GetAll(ctx)
 }
 
-// GetSessionBookedSeats returns row/seat pairs for occupied seats (for public seat map).
-func (s *BookingService) GetSessionBookedSeats(ctx context.Context, sessionID primitive.ObjectID) ([]struct{ RowNumber int `json:"row_number"`; SeatNumber int `json:"seat_number"` }, error) {
+func (s *BookingService) GetSessionBookedSeats(ctx context.Context, sessionID primitive.ObjectID) ([]struct {
+	RowNumber  int `json:"row_number"`
+	SeatNumber int `json:"seat_number"`
+}, error) {
 	tickets, err := s.ticketRepo.GetBySession(ctx, sessionID)
 	if err != nil {
 		return nil, err
 	}
-	out := make([]struct{ RowNumber int `json:"row_number"`; SeatNumber int `json:"seat_number"` }, len(tickets))
+	out := make([]struct {
+		RowNumber  int `json:"row_number"`
+		SeatNumber int `json:"seat_number"`
+	}, len(tickets))
 	for i, t := range tickets {
 		out[i].RowNumber = t.RowNumber
 		out[i].SeatNumber = t.SeatNumber
