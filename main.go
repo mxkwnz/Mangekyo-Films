@@ -38,6 +38,7 @@ func main() {
 	userRepo := repositories.NewUserRepository(db.Database)
 	movieRepo := repositories.NewMovieRepository(db.Database)
 	genreRepo := repositories.NewGenreRepository(db.Database)
+	movieGenreRepo := repositories.NewMovieGenreRepository(db.Database)
 	hallRepo := repositories.NewHallRepository(db.Database)
 	sessionRepo := repositories.NewSessionRepository(db.Database)
 	ticketRepo := repositories.NewTicketRepository(db.Database)
@@ -46,7 +47,8 @@ func main() {
 	paymentRepo := repositories.NewPaymentRepository(db.Database)
 
 	authService := services.NewAuthService(userRepo)
-	movieService := services.NewMovieService(movieRepo, genreRepo)
+	movieGenreService := services.NewMovieGenreService(movieGenreRepo)
+	movieService := services.NewMovieService(movieRepo, genreRepo, movieGenreService)
 	genreService := services.NewGenreService(genreRepo)
 	sessionService := services.NewSessionService(sessionRepo, hallRepo, movieRepo)
 	bookingService := services.NewBookingService(ticketRepo, sessionRepo, userRepo, hallRepo, paymentRepo)
