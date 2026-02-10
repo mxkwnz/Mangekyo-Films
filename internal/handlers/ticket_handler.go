@@ -1,6 +1,7 @@
 package handlers
 
 import (
+	"context"
 	"encoding/json"
 	"net/http"
 
@@ -14,45 +15,43 @@ type TicketHandler struct {
 	worker *services.BookingWorker
 }
 
-func NewTicketHandler(repo *repositories.TicketRepository, worker *services.BookingWorker) *TicketHandler {
+func NewTicketHandler(
+	repo *repositories.TicketRepository,
+	worker *services.BookingWorker,
+) *TicketHandler {
 	return &TicketHandler{repo: repo, worker: worker}
 }
 
 func (h *TicketHandler) HandleTickets(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
-	ctx := r.Context()
+	ctx := context.Background()
 
-	if r.Method == "GET" {
+	switch r.Method {
+
+	case http.MethodGet:
 		tickets, err := h.repo.GetAll(ctx)
 		if err != nil {
-			w.WriteHeader(http.StatusInternalServerError)
-			json.NewEncoder(w).Encode(map[string]string{"error": err.Error()})
+			http.Error(w, err.Error(), http.StatusInternalServerError)
 			return
 		}
 		json.NewEncoder(w).Encode(tickets)
-		return
-	}
 
-	if r.Method == "POST" {
+	case http.MethodPost:
 		var ticket models.Ticket
 		if err := json.NewDecoder(r.Body).Decode(&ticket); err != nil {
-			w.WriteHeader(http.StatusBadRequest)
-			json.NewEncoder(w).Encode(map[string]string{"error": "invalid request body"})
+			http.Error(w, err.Error(), http.StatusBadRequest)
 			return
 		}
 
 		if err := h.repo.Create(ctx, &ticket); err != nil {
-			w.WriteHeader(http.StatusInternalServerError)
-			json.NewEncoder(w).Encode(map[string]string{"error": err.Error()})
+			http.Error(w, err.Error(), http.StatusInternalServerError)
 			return
 		}
 
 		h.worker.Queue <- "Ticket booked successfully"
-
-		w.WriteHeader(http.StatusCreated)
 		json.NewEncoder(w).Encode(ticket)
-		return
-	}
 
-	w.WriteHeader(http.StatusMethodNotAllowed)
+	default:
+		w.WriteHeader(http.StatusMethodNotAllowed)
+	}
 }

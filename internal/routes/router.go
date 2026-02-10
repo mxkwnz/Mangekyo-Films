@@ -36,7 +36,8 @@ func NewRouter(
 
 func (r *Router) Setup() *gin.Engine {
 	router := gin.Default()
-
+	router.Static("/ui", "./frontend")
+	
 	public := router.Group("/api")
 	{
 		public.POST("/auth/register", r.authHandler.Register)

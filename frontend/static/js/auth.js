@@ -1,6 +1,4 @@
 (function () {
-  var API_BASE = window.API_BASE || '/api';
-
   function getStored() {
     try {
       var raw = localStorage.getItem('cinema_user');
@@ -60,23 +58,23 @@
     var closeBtn = document.createElement('button');
     closeBtn.type = 'button';
     closeBtn.className = 'auth-modal-close';
-    closeBtn.setAttribute('aria-label', 'Закрыть');
+    closeBtn.setAttribute('aria-label', 'Close');
     closeBtn.textContent = '\u00D7';
     closeBtn.onclick = function () { window.closeAuthModal(); };
 
     var title = document.createElement('h2');
     title.id = 'auth-modal-title';
-    title.textContent = 'Вход';
+    title.textContent = 'Login';
 
     var tabs = document.createElement('div');
     tabs.className = 'auth-modal-tabs';
     var btnLogin = document.createElement('button');
     btnLogin.type = 'button';
-    btnLogin.textContent = 'Вход';
+    btnLogin.textContent = 'Login';
     btnLogin.onclick = function () { switchMode('login'); };
     var btnReg = document.createElement('button');
     btnReg.type = 'button';
-    btnReg.textContent = 'Регистрация';
+    btnReg.textContent = 'Register';
     btnReg.onclick = function () { switchMode('register'); };
     tabs.appendChild(btnLogin);
     tabs.appendChild(btnReg);
@@ -98,12 +96,12 @@
     var first = document.createElement('input');
     first.type = 'text';
     first.name = 'first_name';
-    first.placeholder = 'Имя';
+    first.placeholder = 'First name';
     first.required = true;
     var last = document.createElement('input');
     last.type = 'text';
     last.name = 'last_name';
-    last.placeholder = 'Фамилия';
+    last.placeholder = 'Last name';
     last.required = true;
     row1.appendChild(first);
     row1.appendChild(last);
@@ -111,7 +109,7 @@
     var phone = document.createElement('input');
     phone.type = 'tel';
     phone.name = 'phone_number';
-    phone.placeholder = 'Телефон';
+    phone.placeholder = 'Phone';
     phone.required = true;
     registerFields.appendChild(phone);
 
@@ -119,27 +117,27 @@
     email.type = 'email';
     email.name = 'email';
     email.placeholder = 'Email';
-  email.required = true;
+    email.required = true;
 
     var pass = document.createElement('input');
     pass.type = 'password';
     pass.name = 'password';
-    pass.placeholder = 'Пароль';
+    pass.placeholder = 'Password';
     pass.required = true;
 
     var submit = document.createElement('button');
     submit.type = 'submit';
     submit.id = 'auth-submit-btn';
-    submit.textContent = 'Войти';
+    submit.textContent = 'Log in';
 
     var divider = document.createElement('p');
     divider.className = 'auth-divider';
-    divider.textContent = 'или';
+    divider.textContent = 'or';
 
     var googleBtn = document.createElement('button');
     googleBtn.type = 'button';
     googleBtn.className = 'auth-google-btn';
-    googleBtn.textContent = 'Войти через Google (скоро)';
+    googleBtn.textContent = 'Sign in with Google (coming soon)';
     googleBtn.disabled = true;
 
     form.appendChild(errorEl);
@@ -175,25 +173,36 @@
       currentMode = mode;
       showError('');
       if (mode === 'login') {
-        document.getElementById('auth-modal-title').textContent = 'Вход';
+        document.getElementById('auth-modal-title').textContent = 'Login';
         document.getElementById('auth-register-fields').style.display = 'none';
-        submit.textContent = 'Войти';
+        submit.textContent = 'Log in';
         tabs.querySelectorAll('button')[0].classList.add('active');
         tabs.querySelectorAll('button')[1].classList.remove('active');
         first.removeAttribute('required');
         last.removeAttribute('required');
         phone.removeAttribute('required');
       } else {
-        document.getElementById('auth-modal-title').textContent = 'Регистрация';
+        document.getElementById('auth-modal-title').textContent = 'Register';
         document.getElementById('auth-register-fields').style.display = 'flex';
         document.getElementById('auth-register-fields').style.flexDirection = 'column';
-        submit.textContent = 'Зарегистрироваться';
+        submit.textContent = 'Register';
         tabs.querySelectorAll('button')[1].classList.add('active');
         tabs.querySelectorAll('button')[0].classList.remove('active');
         first.setAttribute('required', 'required');
         last.setAttribute('required', 'required');
         phone.setAttribute('required', 'required');
       }
+    }
+
+    function handleAuthSuccess(user) {
+      if (!user) return;
+      setStored({
+        id: user.id,
+        role: user.role || 'USER',
+        email: user.email,
+        first_name: user.first_name,
+        last_name: user.last_name
+      });
     }
 
     form.onsubmit = function (e) {
@@ -205,40 +214,33 @@
         email: form.email.value.trim(),
         password: form.password.value
       };
-      var url = API_BASE + '/auth/login';
       if (currentMode === 'register') {
-        url = API_BASE + '/auth/register';
         payload.first_name = form.first_name.value.trim();
         payload.last_name = form.last_name.value.trim();
         payload.phone_number = form.phone_number.value.trim();
       }
 
-      fetch(url, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(payload)
-      })
-        .then(function (res) { return res.json().then(function (data) { return { ok: res.ok, data: data }; }); })
-        .then(function (result) {
-          if (!result.ok) {
-            showError(result.data.error || 'Ошибка входа');
-            submit.disabled = false;
-            return;
-          }
-          var user = result.data.user;
-          setStored({
-            id: user.id,
-            role: user.role || 'USER',
-            email: user.email,
-            first_name: user.first_name,
-            last_name: user.last_name
-          });
+      var apiFn = null;
+      if (window.api) {
+        apiFn = currentMode === 'register' ? window.api.register : window.api.login;
+      }
+
+      if (!apiFn) {
+        showError('Auth API not available.');
+        submit.disabled = false;
+        return;
+      }
+
+      apiFn(payload)
+        .then(function (res) {
+          var user = res && (res.user || res.data && res.data.user || res);
+          handleAuthSuccess(user);
           window.closeAuthModal();
           if (typeof currentCb === 'function') currentCb();
           submit.disabled = false;
         })
-        .catch(function () {
-          showError('Ошибка сети. Попробуйте позже.');
+        .catch(function (err) {
+          showError((err && err.message) || 'Network error. Please try again.');
           submit.disabled = false;
         });
     };
