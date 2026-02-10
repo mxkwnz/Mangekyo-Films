@@ -26,7 +26,7 @@
         '<button type="button" id="login-btn" class="btn btn-primary">Login / Register</button>';
       var loginBtn = document.getElementById('login-btn');
       if (loginBtn) loginBtn.onclick = function () {
-        if (window.openAuthModal) openAuthModal();
+        if (window.openAuthModal) openAuthModal({ onSuccess: function () { location.reload(); } });
       };
     }
   }

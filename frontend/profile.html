@@ -1,79 +1,142 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>My Profile - Mangekyo Cinema</title>
-    <link rel="stylesheet" href="static/css/main.css">
-    <link rel="stylesheet" href="static/css/auth-modal.css">
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Profile — Cinema</title>
+  <link rel="stylesheet" href="static/css/main.css">
+  <link rel="stylesheet" href="static/css/auth-modal.css">
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600&display=swap" rel="stylesheet">
 </head>
+
 <body>
-    <nav class="navbar">
-        <div class="container">
-            <div class="logo">Mangekyo Cinema</div>
-            <div class="nav-links">
-                <ul>
-                    <li><a href="index.html">Home</a></li>
-                    <li><a href="profile.html">Profile</a></li>
-                    <li><a href="admin.html" id="nav-admin" style="display:none;">Admin</a></li>
-                </ul>
-                <span id="user-span" class="nav-user"></span>
-            </div>
+  <header class="site-header">
+    <div class="site-header-inner">
+      <div class="site-header-title">
+        <div class="mangekyo-logo">
+          <div class="iris-ring"></div>
         </div>
-    </nav>
-
-    <main id="profile-main">
-        <div class="container">
-            <section class="page-heading">
-                <h1>My Profile</h1>
-                <p>View your account details and booking history.</p>
-            </section>
-
-            <!-- Guest View -->
-            <div id="profile-guest" style="display:none; text-align: center; padding: 60px 20px;">
-                <h2 style="margin-bottom: 20px;">Welcome to Mangekyo Cinema</h2>
-                <p style="margin-bottom: 30px; color: #b3b3b3;">
-                    Log in to view your profile, manage bookings, and rate movies you've watched.
-                </p>
-                <button type="button" id="profile-login-btn" class="btn">
-                    Login / Register
-                </button>
-            </div>
-
-            <!-- Logged In View -->
-            <div id="profile-content" style="display:none;">
-                <!-- User Info -->
-                <div id="profile-info"></div>
-
-                <!-- Admin Link -->
-                <p style="margin-top: 15px;">
-                    <a href="admin.html" id="profile-admin-link" class="btn btn-ghost" style="display:none;">
-                        Go to Admin Panel
-                    </a>
-                </p>
-
-                <!-- Bookings Section -->
-                <section style="margin-top: 40px;">
-                    <h2 style="margin-bottom: 20px;">My Bookings</h2>
-                    <p id="bookings-empty" style="display:none;">
-                        You don't have any bookings yet. 
-                        <a href="index.html" style="color: #d81f26; text-decoration: underline;">Browse movies</a> 
-                        to book your first ticket!
-                    </p>
-                    <ul id="bookings-list"></ul>
-                </section>
-            </div>
-
-            <p id="profile-error" class="text-error" style="display:none;"></p>
+        <span>Mangekyo Cinema</span>
+      </div>
+      <nav class="site-nav">
+        <div class="site-nav-primary">
+          <a href="index.html">Home</a>
+          <a href="profile.html">Profile</a>
+          <a href="admin.html" id="nav-admin" style="display:none;">Admin</a>
         </div>
-    </main>
+        <span id="user-span" class="site-nav-user"></span>
+      </nav>
+    </div>
+  </header>
+  <main id="profile-main">
+    <div class="page-shell">
+      <section class="page-heading">
+        <h1>Profile</h1>
+        <p>View your details, bookings, and access admin tools if available.</p>
+      </section>
+      <div id="profile-guest" style="display:none;">
+        <p>Log in to see your profile and bookings.</p>
+        <button type="button" id="profile-login-btn" class="btn btn-primary">Login / Register</button>
+      </div>
+      <div id="profile-content" style="display:none;">
 
-    <footer>
-        <p>&copy; 2026 Mangekyo Cinema. All rights reserved.</p>
-    </footer>
+        <div class="card" style="margin-bottom: 2rem;">
+          <div class="card-body">
+            <h3 class="card-title">Account Details</h3>
+            <p id="profile-info" style="color: var(--text-dim); margin-bottom: 1.5rem; line-height: 1.6;"></p>
+            <div style="display: flex; gap: 1rem; flex-wrap: wrap;">
+              <button type="button" id="edit-profile-btn" class="btn btn-primary">Edit Profile</button>
+              <a href="admin.html" id="profile-admin-link" class="btn btn-ghost" style="display:none;">Go to Admin
+                panel</a>
+            </div>
+          </div>
+        </div>
 
-    <script src="static/js/auth.js"></script>
-    <script src="static/js/api.js"></script>
-    <script src="static/js/profile.js"></script>
+
+        <div class="card" style="margin-bottom: 2rem; border-left: 4px solid var(--accent);">
+          <div class="card-body"
+            style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 1.5rem;">
+            <div>
+              <h3 class="card-title" style="margin-bottom: 0.25rem;">Wallet Balance</h3>
+              <p style="font-size: 1.5rem; font-weight: 600;"><span id="user-balance">0.00</span> ₸</p>
+            </div>
+            <a href="topup.html" class="btn btn-primary">Top-up Balance</a>
+          </div>
+        </div>
+
+
+        <section style="margin-bottom: 3rem;">
+          <h3>My Bookings</h3>
+          <p id="bookings-empty" style="display:none; color: var(--text-dim); margin-top: 1rem;">You have no bookings
+            yet.</p>
+          <div id="bookings-list" class="card-grid" style="margin-top: 1rem;"></div>
+        </section>
+
+
+        <section style="margin-bottom: 3rem;">
+          <h3>Review History</h3>
+          <p id="reviews-empty" style="display:none; color: var(--text-dim); margin-top: 1rem;">You haven't written any
+            reviews yet.</p>
+          <div id="reviews-list" class="card-grid" style="margin-top: 1rem;"></div>
+        </section>
+      </div>
+      <p id="profile-error" class="error-msg" style="display:none;"></p>
+    </div>
+
+    <div id="edit-review-modal" class="auth-modal-overlay">
+      <div class="auth-modal">
+        <div class="auth-modal-wrap">
+          <button type="button" class="auth-modal-close" onclick="closeEditModal()">&times;</button>
+          <h2 id="auth-modal-title">Edit Review</h2>
+          <form id="edit-review-form" class="auth-form">
+            <input type="hidden" id="edit-review-id">
+            <label for="edit-rating">Rating (0-10):</label>
+            <select id="edit-rating" name="rating" required
+              style="margin-bottom: 1rem; background: #222; color: white; border: 1px solid #444; padding: 0.5rem; border-radius: 4px;">
+              <option value="0">0 - Masterpiece-ly Bad</option>
+              <option value="1">1</option>
+              <option value="2">2</option>
+              <option value="3">3</option>
+              <option value="4">4</option>
+              <option value="5">5</option>
+              <option value="6">6</option>
+              <option value="7">7</option>
+              <option value="8">8</option>
+              <option value="9">9</option>
+              <option value="10">10 - Masterpiece</option>
+            </select>
+            <textarea id="edit-comment" name="comment" placeholder="Your review..." required rows="4"
+              style="margin-bottom: 1rem; width: 100%; box-sizing: border-box; background: #222; color: white; border: 1px solid #444; padding: 0.5rem; border-radius: 4px;"></textarea>
+            <button type="submit" class="btn btn-primary">Save Changes</button>
+          </form>
+        </div>
+      </div>
+    </div>
+
+
+    <div id="edit-profile-modal" class="auth-modal-overlay">
+      <div class="auth-modal">
+        <div class="auth-modal-wrap">
+          <button type="button" class="auth-modal-close" onclick="closeProfileModal()">&times;</button>
+          <h2>Edit Profile</h2>
+          <form id="edit-profile-form" class="auth-form">
+            <div class="row">
+              <input type="text" id="edit-first-name" placeholder="First Name" required>
+              <input type="text" id="edit-last-name" placeholder="Last Name" required>
+            </div>
+            <input type="email" id="edit-email" placeholder="Email Address" required>
+            <input type="text" id="edit-phone" placeholder="Phone Number">
+            <button type="submit" class="btn btn-primary">Save Changes</button>
+          </form>
+        </div>
+      </div>
+    </div>
+
+  </main>
+  <script src="static/js/auth.js"></script>
+  <script src="static/js/api.js"></script>
+  <script src="static/js/profile.js"></script>
 </body>
+
 </html>

@@ -5,9 +5,9 @@
   }
 
   function updateNav() {
-    var span = document.getElementById('sessions-user-span');
-    var navProfile = document.getElementById('sessions-nav-profile');
-    var navAdmin = document.getElementById('sessions-nav-admin');
+    var span = document.getElementById('user-span');
+    var navProfile = document.getElementById('nav-profile');
+    var navAdmin = document.getElementById('nav-admin');
     if (!window.auth) return;
     if (navProfile) navProfile.style.display = auth.isCustomer() ? '' : 'none';
     if (navAdmin) navAdmin.style.display = auth.isAdmin() ? '' : 'none';
@@ -15,15 +15,15 @@
     if (auth.isLoggedIn()) {
       var u = auth.getUser();
       span.innerHTML =
-        (u.first_name || u.email) +
-        ' | <a href="index.html">Home</a> | <a href="profile.html">Profile</a> | <button type="button" id="sessions-logout-btn" class="btn btn-ghost">Log out</button>';
-      var btn = document.getElementById('sessions-logout-btn');
+        'Hi, ' + (u.first_name || u.email) +
+        ' | <button type="button" id="logout-btn" class="btn btn-ghost">Log out</button>';
+      var btn = document.getElementById('logout-btn');
       if (btn) btn.onclick = function () { auth.logout(); updateNav(); };
     } else {
       span.innerHTML =
-        '<button type="button" id="sessions-login-btn" class="btn btn-primary">Login / Register</button>';
-      var loginBtn = document.getElementById('sessions-login-btn');
-      if (loginBtn) loginBtn.onclick = function () { if (window.openAuthModal) openAuthModal({ onSuccess: updateNav }); };
+        '<button type="button" id="login-btn" class="btn btn-primary">Login / Register</button>';
+      var loginBtn = document.getElementById('login-btn');
+      if (loginBtn) loginBtn.onclick = function () { if (window.openAuthModal) openAuthModal({ onSuccess: function () { location.reload(); } }); };
     }
   }
 
@@ -136,7 +136,7 @@
 
       var meta = document.createElement('div');
       meta.className = 'card-meta';
-      meta.textContent = 'Price: ' + (s.price != null ? s.price : 0);
+      meta.textContent = 'Price: ' + (s.price != null ? s.price : 0) + ' ₸';
 
       var badges = document.createElement('div');
       badges.className = 'badge-row';

@@ -1,87 +1,697 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>Select Seats - Mangekyo Cinema</title>
-    <link rel="stylesheet" href="static/css/main.css">
-    <link rel="stylesheet" href="static/css/auth-modal.css">
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Session — Cinema</title>
+  <link rel="stylesheet" href="static/css/main.css">
+  <link rel="stylesheet" href="static/css/auth-modal.css">
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600&display=swap" rel="stylesheet">
+  <style>
+    #session-page {
+      max-width: 1400px;
+      margin: 0 auto;
+      padding: 2rem 1rem;
+      display: grid;
+      grid-template-columns: auto 380px;
+      gap: 4rem;
+      justify-content: center;
+      align-items: start;
+    }
+
+    @media (max-width: 900px) {
+      #session-page {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    #session-header {
+      grid-column: 1 / -1;
+      display: flex;
+      gap: 2rem;
+      background: var(--panel-dark);
+      padding: 1.5rem;
+      border-radius: 16px;
+      border: 1px solid var(--border);
+      margin-bottom: 1rem;
+    }
+
+    #session-poster {
+      width: 140px;
+      aspect-ratio: 2/3;
+      border-radius: 8px;
+      object-fit: cover;
+      box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.5);
+    }
+
+    #session-info h1 {
+      margin: 0 0 0.5rem;
+      font-size: 2rem;
+      background: linear-gradient(to right, #fff, #94a3b8);
+      -webkit-background-clip: text;
+      background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+
+    .info-tag {
+      display: inline-block;
+      padding: 4px 12px;
+      background: #1e293b;
+      border-radius: 20px;
+      font-size: 0.85rem;
+      color: var(--text-dim);
+      margin-right: 8px;
+      margin-top: 4px;
+    }
+
+
+    .screen-container {
+      perspective: 1000px;
+      margin-bottom: 3rem;
+    }
+
+    .screen-shape {
+      height: 10px;
+      background: #fff;
+      width: 70%;
+      margin: 0 auto;
+      border-radius: 50%;
+      box-shadow: 0 10px 50px 10px rgba(255, 255, 255, 0.2);
+      transform: rotateX(-30deg);
+    }
+
+    .screen-text {
+      text-align: center;
+      color: var(--text-dim);
+      font-size: 0.75rem;
+      text-transform: uppercase;
+      letter-spacing: 4px;
+      margin-top: 1rem;
+    }
+
+    #seat-map-container {
+      background: var(--panel-dark);
+      padding: 3rem 1.5rem;
+      border-radius: 24px;
+      border: 1px solid var(--border);
+    }
+
+    .seat-row {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      margin-bottom: 8px;
+    }
+
+    .row-num {
+      width: 24px;
+      font-size: 0.75rem;
+      color: var(--text-dim);
+      text-align: center;
+    }
+
+    .seat {
+      width: 32px;
+      height: 32px;
+      border-radius: 8px;
+      border: none;
+      cursor: pointer;
+      transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+      position: relative;
+    }
+
+    .seat.free {
+      background: #1e293b;
+      border: 1px solid #334155;
+    }
+
+    .seat.free:hover {
+      background: #334155;
+      transform: translateY(-2px);
+      box-shadow: 0 4px 12px rgba(225, 29, 72, 0.2);
+    }
+
+    .seat.occupied {
+      background: #0f172a;
+      cursor: not-allowed;
+      opacity: 0.3;
+    }
+
+    .seat.selected {
+      background: var(--accent);
+      box-shadow: 0 0 15px rgba(225, 29, 72, 0.5);
+      transform: scale(1.1);
+    }
+
+    #checkout-panel {
+      position: sticky;
+      top: 100px;
+      background: var(--panel-dark);
+      border-radius: 24px;
+      border: 1px solid var(--border);
+      padding: 1.5rem;
+    }
+
+    #checkout-panel h3 {
+      margin-top: 0;
+      font-size: 1.25rem;
+      border-bottom: 1px solid var(--border);
+      padding-bottom: 1rem;
+    }
+
+    .empty-state {
+      text-align: center;
+      padding: 2rem 1rem;
+      color: var(--text-dim);
+    }
+
+    .ticket-list {
+      max-height: 400px;
+      overflow-y: auto;
+      margin: 1rem 0;
+    }
+
+    .ticket-card {
+      background: #0f172a;
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 1rem;
+      margin-bottom: 1rem;
+      animation: slideIn 0.3s ease-out;
+    }
+
+    @keyframes slideIn {
+      from {
+        opacity: 0;
+        transform: translateX(20px);
+      }
+
+      to {
+        opacity: 1;
+        transform: translateX(0);
+      }
+    }
+
+    .ticket-card-header {
+      display: flex;
+      justify-content: space-between;
+      margin-bottom: 0.75rem;
+      font-size: 0.9rem;
+      font-weight: 600;
+    }
+
+    .ticket-card select {
+      width: 100%;
+      background: #1e293b;
+      border: 1px solid #334155;
+      color: white;
+      padding: 8px;
+      border-radius: 8px;
+      font-family: inherit;
+      cursor: pointer;
+    }
+
+    .ticket-card select:focus {
+      outline: 2px solid var(--accent);
+    }
+
+    #summary-row {
+      margin-top: 1.5rem;
+      padding-top: 1rem;
+      border-top: 1px solid var(--border);
+    }
+
+    .summary-item {
+      display: flex;
+      justify-content: space-between;
+      margin-bottom: 0.5rem;
+    }
+
+    .total-price {
+      font-size: 1.5rem;
+      color: var(--accent);
+      font-weight: 600;
+    }
+
+    #confirm-booking-btn {
+      width: 100%;
+      padding: 1rem;
+      background: var(--accent);
+      color: white;
+      border: none;
+      border-radius: 12px;
+      font-size: 1.1rem;
+      font-weight: 600;
+      cursor: pointer;
+      margin-top: 1rem;
+      transition: all 0.2s;
+    }
+
+    #confirm-booking-btn:hover:not(:disabled) {
+      background: var(--accent-hover);
+      transform: translateY(-2px);
+      box-shadow: 0 10px 15px -3px rgba(225, 29, 72, 0.3);
+    }
+
+    #confirm-booking-btn:disabled {
+      background: #1e293b;
+      color: #475569;
+      cursor: not-allowed;
+    }
+
+    #seat-legend {
+      display: flex;
+      justify-content: center;
+      gap: 1.5rem;
+      margin-top: 2rem;
+      font-size: 0.85rem;
+      color: var(--text-dim);
+    }
+
+    .legend-item {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .legend-blob {
+      width: 14px;
+      height: 14px;
+      border-radius: 4px;
+      border: 1px solid rgba(255, 255, 255, 0.1);
+    }
+
+    .legend-blob.free {
+      background: #1e293b;
+      border-color: #334155;
+    }
+
+    .legend-blob.occupied {
+      background: #0f172a;
+      opacity: 0.3;
+    }
+
+    .legend-blob.selected {
+      background: var(--accent);
+    }
+  </style>
 </head>
+
 <body>
-    <nav class="navbar">
-        <div class="container">
-            <div class="logo">Mangekyo Cinema</div>
-            <div class="nav-links">
-                <ul>
-                    <li><a href="index.html">Home</a></li>
-                    <li><a href="profile.html" id="session-nav-profile" style="display:none;">Profile</a></li>
-                    <li><a href="admin.html" id="session-nav-admin" style="display:none;">Admin</a></li>
-                </ul>
-                <span id="session-user-span" class="nav-user"></span>
-            </div>
+  <header class="site-header">
+    <div class="site-header-inner">
+      <div class="site-header-title">
+        <div class="mangekyo-logo">
+          <div class="iris-ring"></div>
         </div>
-    </nav>
-
-    <main>
-        <div id="session-page">
-            <section id="session-header">
-                <img id="session-poster" src="" alt="Movie Poster" />
-                <div id="session-info">
-                    <h1 id="session-movie-title"></h1>
-                    <p id="session-duration"></p>
-                    <p id="session-hall"></p>
-                    <p id="session-time"></p>
-                    <p id="session-price"></p>
-                </div>
-            </section>
-
-            <div id="screen-label">SCREEN</div>
-
-            <div id="seat-map-wrap">
-                <div id="seat-map"></div>
-                <div id="seat-legend">
-                    <span class="legend-item">
-                        <span class="seat-demo free"></span>
-                        Available
-                    </span>
-                    <span class="legend-item">
-                        <span class="seat-demo occupied"></span>
-                        Taken
-                    </span>
-                    <span class="legend-item">
-                        <span class="seat-demo selected"></span>
-                        Your Selection
-                    </span>
-                </div>
-            </div>
-
-            <div id="selected-seat-info" style="text-align: center; margin-top: 20px; min-height: 30px;">
-                <p id="seat-info-text" style="color: #b3b3b3;"></p>
-            </div>
-
-            <div id="confirm-wrap">
-                <button type="button" id="confirm-booking-btn" class="btn" disabled>
-                    Confirm Booking
-                </button>
-                <p id="confirm-error" class="text-error" style="display:none;"></p>
-            </div>
-
-            <div id="success-message" style="display:none;">
-                <p>🎉 Booking successful! You can view your ticket in your Profile.</p>
-                <div style="margin-top: 20px;">
-                    <a href="profile.html" class="btn">Go to Profile</a>
-                    <a href="index.html" class="btn btn-ghost" style="margin-left: 10px;">Back to Home</a>
-                </div>
-            </div>
+        <span>Mangekyo Cinema</span>
+      </div>
+      <nav class="site-nav">
+        <div class="site-nav-primary">
+          <a href="index.html">Home</a>
+          <a href="profile.html" id="nav-profile" style="display:none;">Profile</a>
+          <a href="admin.html" id="nav-admin" style="display:none;">Admin</a>
         </div>
+        <span id="user-span" class="site-nav-user"></span>
+      </nav>
+    </div>
+  </header>
+
+  <div id="session-page">
+    <header id="session-header">
+      <img id="session-poster" src="" alt="Poster" />
+      <div id="session-info">
+        <h1 id="session-movie-title"></h1>
+        <div id="session-tags">
+          <span id="session-duration" class="info-tag"></span>
+          <span id="session-age-rating" class="info-tag"></span>
+          <span id="session-hall" class="info-tag"></span>
+        </div>
+        <p id="session-time" style="color: var(--text-dim); margin-top: 1rem;"></p>
+      </div>
+    </header>
+
+    <main id="seat-map-container">
+      <div class="screen-container">
+        <div class="screen-shape"></div>
+        <div class="screen-text">Screen</div>
+      </div>
+
+      <div id="seat-map"></div>
+
+      <div id="seat-legend">
+        <div class="legend-item">
+          <div class="legend-blob" style="background: var(--seat-free)"></div> Available
+        </div>
+        <div class="legend-item">
+          <div class="legend-blob" style="background: var(--seat-taken); opacity: 0.3;"></div> Taken
+        </div>
+        <div class="legend-item">
+          <div class="legend-blob" style="background: var(--accent); box-shadow: 0 0 10px var(--accent);"></div>
+          Selected
+        </div>
+      </div>
     </main>
 
-    <footer>
-        <p>&copy; 2026 Mangekyo Cinema. All rights reserved.</p>
-    </footer>
+    <aside id="checkout-panel">
+      <h3>Your Selection</h3>
+      <div id="checkout-content">
+        <div class="empty-state">
+          <p>Please select a seat from the map</p>
+        </div>
+      </div>
 
-    <script src="static/js/auth.js"></script>
-    <script src="static/js/api.js"></script>
-    <script src="static/js/session.js"></script>
+      <div id="summary-section" style="display:none;">
+        <div id="ticket-list" class="ticket-list"></div>
+
+        <div id="summary-row">
+          <div class="summary-item">
+            <span>Total Amount</span>
+            <span class="total-price" id="cumulative-price">0 ₸</span>
+          </div>
+          <button type="button" id="confirm-booking-btn">Confirm Purchase</button>
+          <p id="confirm-error" class="error-msg" style="display:none; text-align: center; margin-top: 1rem;"></p>
+        </div>
+      </div>
+
+      <div id="success-message" style="display:none; text-align: center;">
+        <h4>Booking Confirmed!</h4>
+        <p style="color: var(--text-dim); margin-bottom: 1.5rem;">Your tickets have been added to your profile.</p>
+        <a href="profile.html" class="btn btn-primary" style="display: block; text-decoration: none;">View Tickets</a>
+      </div>
+    </aside>
+  </div>
+
+  <script src="static/js/api.js"></script>
+  <script src="static/js/auth.js"></script>
+  <script>
+    (function () {
+      var sessionId = null;
+      var session = null;
+      var movie = null;
+      var hall = null;
+      var bookedSeats = [];
+      var selectedSeats = [];
+      var seatMapEl = null;
+      var confirmBtn = null;
+      var successEl = null;
+      var confirmErrorEl = null;
+
+      var checkoutContent = document.getElementById('checkout-content');
+      var summarySection = document.getElementById('summary-section');
+      var ticketListEl = document.getElementById('ticket-list');
+      var cumulativePriceEl = document.getElementById('cumulative-price');
+
+      var TICKET_TYPES = [
+        { id: 'ADULT', label: 'Adult', multiplier: 1.0 },
+        { id: 'STUDENT', label: 'Student', multiplier: 0.8 },
+        { id: 'KID', label: 'Kid', multiplier: 0.5 },
+        { id: 'PENSION', label: 'Pension', multiplier: 0.7 }
+      ];
+
+      function getParam(name) {
+        var m = new RegExp('([?&])' + name + '=([^&]*)').exec(location.search);
+        return m ? decodeURIComponent(m[2]) : null;
+      }
+
+      function ensureLoggedIn(cb) {
+        if (window.auth && auth.isLoggedIn && auth.isLoggedIn()) {
+          if (cb) cb();
+          return;
+        }
+        window.openAuthModal({ onSuccess: function () { updateSessionNav(); if (cb) cb(); } });
+      }
+
+      function updateSessionNav() {
+        var navProfile = document.getElementById('nav-profile');
+        var navAdmin = document.getElementById('nav-admin');
+        var span = document.getElementById('user-span');
+        if (navProfile) navProfile.style.display = (window.auth && auth.isCustomer && auth.isCustomer()) ? '' : 'none';
+        if (navAdmin) navAdmin.style.display = (window.auth && auth.isAdmin && auth.isAdmin()) ? '' : 'none';
+        if (!span) return;
+        if (window.auth && auth.isLoggedIn && auth.isLoggedIn()) {
+          var u = auth.getUser();
+          span.innerHTML = 'Hi, ' + (u.first_name || u.email) + ' | <button type="button" id="logout-btn" class="btn btn-ghost">Log out</button>';
+          var btn = document.getElementById('logout-btn');
+          if (btn) btn.onclick = function () { auth.logout(); updateSessionNav(); };
+        } else {
+          span.innerHTML = '<button type="button" id="login-btn" class="btn btn-primary">Login / Register</button>';
+          var loginBtn = document.getElementById('login-btn');
+          if (loginBtn) loginBtn.onclick = function () { openAuthModal({ onSuccess: updateSessionNav }); };
+        }
+      }
+
+      function setLoading(loading) {
+        if (confirmBtn) confirmBtn.disabled = loading;
+        if (confirmBtn) confirmBtn.textContent = loading ? 'Processing...' : 'Confirm Purchase';
+      }
+
+      function showSuccess() {
+        if (successEl) successEl.style.display = 'block';
+        if (checkoutContent) checkoutContent.style.display = 'none';
+        if (summarySection) summarySection.style.display = 'none';
+        if (seatMapEl) seatMapEl.style.pointerEvents = 'none';
+        document.getElementById('seat-legend').style.display = 'none';
+      }
+
+      function showConfirmError(msg) {
+        if (!confirmErrorEl) return;
+        confirmErrorEl.textContent = msg || '';
+        confirmErrorEl.style.display = msg ? 'block' : 'none';
+      }
+
+      function isBooked(row, seat) {
+        return bookedSeats.some(function (s) { return s.row_number === row && s.seat_number === seat; });
+      }
+
+      function renderSeatMap() {
+        if (!hall || !seatMapEl) return;
+        var rows = hall.total_rows;
+        var seatsPerRow = hall.seats_per_row;
+        seatMapEl.innerHTML = '';
+
+        for (var r = 1; r <= rows; r++) {
+          var rowDiv = document.createElement('div');
+          rowDiv.className = 'seat-row';
+
+          var leftNum = document.createElement('span');
+          leftNum.className = 'row-num';
+          leftNum.textContent = r;
+          rowDiv.appendChild(leftNum);
+
+          for (var s = 1; s <= seatsPerRow; s++) {
+            var cell = document.createElement('button');
+            cell.type = 'button';
+            cell.className = 'seat';
+            cell.dataset.row = r;
+            cell.dataset.seat = s;
+            cell.setAttribute('aria-label', 'Row ' + r + ', seat ' + s);
+            var occupied = isBooked(r, s);
+            if (occupied) {
+              cell.classList.add('occupied');
+              cell.disabled = true;
+            } else {
+              cell.classList.add('free');
+              cell.addEventListener('click', function (ev) {
+                var row = parseInt(ev.currentTarget.dataset.row, 10);
+                var seat = parseInt(ev.currentTarget.dataset.seat, 10);
+                toggleSeat(row, seat);
+              });
+            }
+            rowDiv.appendChild(cell);
+          }
+
+          var rightNum = document.createElement('span');
+          rightNum.className = 'row-num';
+          rightNum.textContent = r;
+          rowDiv.appendChild(rightNum);
+
+          seatMapEl.appendChild(rowDiv);
+        }
+        updateSeatSelection();
+      }
+
+      function toggleSeat(row, seat) {
+        if (isBooked(row, seat)) return;
+        var idx = selectedSeats.findIndex(function (s) { return s.row === row && s.seat === seat; });
+        if (idx > -1) {
+          selectedSeats.splice(idx, 1);
+        } else {
+          selectedSeats.push({ row: row, seat: seat, type: 'ADULT' });
+        }
+        updateSeatSelection();
+        renderCheckout();
+      }
+
+      function updateSeatSelection() {
+        var seats = seatMapEl ? seatMapEl.querySelectorAll('.seat:not(.occupied)') : [];
+        for (var i = 0; i < seats.length; i++) {
+          var el = seats[i];
+          var r = parseInt(el.dataset.row, 10);
+          var s = parseInt(el.dataset.seat, 10);
+          var isSelected = selectedSeats.some(function (sel) { return sel.row === r && sel.seat === s; });
+          if (isSelected) {
+            el.classList.add('selected');
+            el.classList.remove('free');
+          } else {
+            el.classList.remove('selected');
+            el.classList.add('free');
+          }
+        }
+        confirmBtn.disabled = selectedSeats.length === 0;
+      }
+
+      function renderCheckout() {
+        if (!checkoutContent || !summarySection || !ticketListEl) return;
+
+        if (selectedSeats.length === 0) {
+          checkoutContent.style.display = 'block';
+          summarySection.style.display = 'none';
+          return;
+        }
+
+        checkoutContent.style.display = 'none';
+        summarySection.style.display = 'block';
+        ticketListEl.innerHTML = '';
+
+        var total = 0;
+        var basePrice = session ? session.price : 0;
+        var is18Plus = movie && movie.age_rating === '18+';
+
+        selectedSeats.forEach(function (sel) {
+          var card = document.createElement('div');
+          card.className = 'ticket-card';
+
+          var header = document.createElement('div');
+          header.className = 'ticket-card-header';
+          header.innerHTML = '<span>Row ' + sel.row + ', Seat ' + sel.seat + '</span><span style="color: var(--accent)">' + (basePrice * (TICKET_TYPES.find(t => t.id === sel.type).multiplier)).toFixed(0) + ' ₸</span>';
+
+          var select = document.createElement('select');
+          TICKET_TYPES.forEach(function (t) {
+            if (t.id === 'KID' && is18Plus) return;
+            var opt = document.createElement('option');
+            opt.value = t.id;
+            opt.textContent = t.label + ' (' + (t.multiplier * 100) + '%)';
+            if (sel.type === t.id) opt.selected = true;
+            select.appendChild(opt);
+          });
+
+          select.addEventListener('change', function () {
+            sel.type = this.value;
+            renderCheckout();
+          });
+
+          card.appendChild(header);
+          card.appendChild(select);
+          ticketListEl.appendChild(card);
+
+          var typeObj = TICKET_TYPES.find(function (t) { return t.id === sel.type; });
+          total += basePrice * (typeObj ? typeObj.multiplier : 1);
+        });
+
+        cumulativePriceEl.textContent = total.toFixed(0) + ' ₸';
+      }
+
+      function fillHeader() {
+        var poster = document.getElementById('session-poster');
+        var title = document.getElementById('session-movie-title');
+        var durationEl = document.getElementById('session-duration');
+        var ageEl = document.getElementById('session-age-rating');
+        var hallEl = document.getElementById('session-hall');
+        var timeEl = document.getElementById('session-time');
+
+        if (poster && movie) poster.src = movie.poster_url || '';
+        if (title && movie) title.textContent = movie.name || '';
+        if (durationEl && movie) durationEl.textContent = (movie.duration || 0) + ' min';
+        if (ageEl && movie) {
+          ageEl.textContent = movie.age_rating || 'NR';
+          if (movie.age_rating === '18+') ageEl.style.color = '#ef4444';
+        }
+        if (hallEl && hall) hallEl.textContent = (hall.name || '');
+        if (timeEl && session && session.start_time) {
+          var start = new Date(session.start_time);
+          timeEl.innerHTML = start.toLocaleDateString() + ' <span style="margin-left: 10px">' + start.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) + '</span>';
+        }
+      }
+
+      function doBooking() {
+        if (selectedSeats.length === 0 || !sessionId) return;
+        ensureLoggedIn(function () {
+          setLoading(true);
+          showConfirmError('');
+          var payload = {
+            session_id: sessionId,
+            seats: selectedSeats.map(function (s) {
+              return { row_number: s.row, seat_number: s.seat, type: s.type };
+            })
+          };
+          window.api.createBooking(payload)
+            .then(function () {
+              setLoading(false);
+              showSuccess();
+              selectedSeats.forEach(function (s) {
+                bookedSeats.push({ row_number: s.row, seat_number: s.seat });
+              });
+              selectedSeats = [];
+              renderSeatMap();
+            })
+            .catch(function (err) {
+              setLoading(false);
+              showConfirmError(err.message || 'Booking failed');
+            });
+        });
+      }
+
+      function init() {
+        updateSessionNav();
+        sessionId = getParam('sessionId') || getParam('session_id');
+        seatMapEl = document.getElementById('seat-map');
+        confirmBtn = document.getElementById('confirm-booking-btn');
+        successEl = document.getElementById('success-message');
+        confirmErrorEl = document.getElementById('confirm-error');
+
+        if (!sessionId) {
+          document.getElementById('session-page').innerHTML = '<div style="grid-column: 1/-1; text-align: center; padding: 5rem;"><h3>Session not found</h3><a href="index.html" class="btn btn-primary">Go Home</a></div>';
+          return;
+        }
+
+        window.api.fetchSession(sessionId)
+          .then(function (s) {
+            session = s;
+            return Promise.all([
+              window.api.fetchMovieDetails(session.movie_id),
+              window.api.fetchHall(session.hall_id),
+              window.api.fetchSessionBookedSeats(sessionId)
+            ]);
+          })
+          .then(function (results) {
+            movie = results[0];
+            hall = results[1];
+            bookedSeats = results[2];
+            fillHeader();
+            renderSeatMap();
+          })
+          .catch(function (err) {
+            document.getElementById('session-page').innerHTML = '<div style="grid-column: 1/-1; text-align: center; padding: 5rem;"><h3>Error: ' + (err.message || 'failed to load') + '</h3></div>';
+          });
+
+        if (confirmBtn) {
+          confirmBtn.addEventListener('click', function () {
+            if (selectedSeats.length === 0) return;
+            doBooking();
+          });
+        }
+      }
+
+      if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', init);
+      } else {
+        init();
+      }
+    })();
+  </script>
 </body>
+
 </html>

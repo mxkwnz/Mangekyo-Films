@@ -1,424 +1,325 @@
 (function () {
-    var API_BASE = window.API_BASE || '/api';
-    var ADMIN_BASE = API_BASE + '/admin';
+    var sessionsPage = 1;
+    var moviesPage = 1;
+    var bookingsPage = 1;
+    var perPage = 5;
 
-    function authHeaders() {
-        return window.auth && window.auth.getAuthHeaders ? window.auth.getAuthHeaders() : {};
-    }
+    var allSessions = [];
+    var allMovies = [];
+    var allBookings = [];
 
     function showError(msg) {
         var el = document.getElementById('admin-error');
-        if (!el) return;
-        el.textContent = msg || '';
-        el.style.display = msg ? 'block' : 'none';
+        if (el) {
+            el.textContent = msg || '';
+            el.style.display = msg ? 'block' : 'none';
+        }
     }
 
     function updateNav() {
         var span = document.getElementById('user-span');
         if (!span) return;
-        
         if (window.auth && auth.isLoggedIn()) {
             var u = auth.getUser();
-            span.innerHTML =
-                'Hi, ' + (u.first_name || u.email) +
-                ' | <button type="button" id="logout-btn" class="btn btn-ghost btn-sm">Log out</button>';
-            var btn = document.getElementById('logout-btn');
-            if (btn) {
-                btn.onclick = function () {
-                    auth.logout();
-                    location.href = 'index.html';
-                };
-            }
+            span.innerHTML = 'Hi, ' + (u.first_name || u.email) + ' | <button type="button" id="logout-btn" class="btn btn-ghost">Log out</button>';
+            document.getElementById('logout-btn').onclick = function () {
+                auth.logout();
+                location.href = 'index.html';
+            };
         } else {
-            span.innerHTML = '<a href="index.html">Back to Home</a>';
+            span.innerHTML = '<a href="index.html" class="btn btn-ghost">Back to Home</a>';
         }
     }
 
-    // ========== HALLS ==========
-    
     function loadHalls() {
-        fetch(ADMIN_BASE + '/halls', { headers: authHeaders() })
-            .then(function (r) { return r.json(); })
+        window.api.adminFetchHalls()
             .then(function (data) {
                 var ul = document.getElementById('admin-halls');
-                if (!ul) return;
-                
+                var select = document.querySelector('#form-session select[name="hall_id"]');
                 ul.innerHTML = '';
-                var halls = Array.isArray(data) ? data : [];
-                
-                if (halls.length === 0) {
+                if (select) select.innerHTML = '<option value="">Select Hall</option>';
+                data.forEach(function (h) {
                     var li = document.createElement('li');
-                    li.textContent = 'No halls yet.';
-                    li.style.color = '#666';
+                    li.className = 'admin-list-item';
+                    li.innerHTML = `
+            <div class="item-info">
+              <strong>${h.name}</strong> — ${h.location}<br>
+              <small>Rows: ${h.total_rows}, Seats/Row: ${h.seats_per_row}</small>
+            </div>
+            <button type="button" class="btn btn-danger btn-sm del-hall" data-id="${h.id}">Delete</button>
+          `;
                     ul.appendChild(li);
-                    return;
-                }
-                
-                halls.forEach(function (h) {
-                    var li = document.createElement('li');
-                    
-                    var info = document.createElement('span');
-                    info.textContent =
-                        (h.name || '') + ' – ' + (h.location || '') +
-                        ' (Rows: ' + (h.total_rows || 0) + ', Seats/row: ' + (h.seats_per_row || 0) + ')';
-                    
-                    var delBtn = document.createElement('button');
-                    delBtn.type = 'button';
-                    delBtn.className = 'btn btn-danger btn-sm';
-                    delBtn.textContent = 'Delete';
-                    delBtn.onclick = function () {
-                        if (!confirm('Delete hall "' + (h.name || '') + '"?')) return;
-                        deleteHall(h.id);
+
+                    if (select) {
+                        var opt = document.createElement('option');
+                        opt.value = h.id;
+                        opt.textContent = h.name + ' (' + h.location + ')';
+                        select.appendChild(opt);
+                    }
+                });
+                ul.querySelectorAll('.del-hall').forEach(function (btn) {
+                    btn.onclick = function () {
+                        var id = btn.dataset.id;
+                        if (confirm('Delete this hall?')) {
+                            window.api.adminDeleteHall(id).then(loadHalls).catch(function (err) { showError(err.message); });
+                        }
                     };
-                    
-                    li.appendChild(info);
-                    li.appendChild(delBtn);
-                    ul.appendChild(li);
                 });
             })
-            .catch(function () {
-                showError('Failed to load halls');
-            });
+            .catch(function (err) { showError(err.message); });
     }
 
-    function deleteHall(id) {
-        if (!id) return;
-        fetch(ADMIN_BASE + '/halls/' + id, {
-            method: 'DELETE',
-            headers: authHeaders()
-        })
-            .then(function (r) { return r.json(); })
-            .then(function () {
-                loadHalls();
-                showError('');
-            })
-            .catch(function () {
-                showError('Failed to delete hall');
-            });
-    }
-
-    // ========== MOVIES ==========
-    
     function loadMovies() {
-        fetch(API_BASE + '/movies')
-            .then(function (r) { return r.json(); })
+        window.api.fetchMovies()
             .then(function (data) {
-                var ul = document.getElementById('admin-movies');
-                if (!ul) return;
-                
-                ul.innerHTML = '';
-                var movies = Array.isArray(data) ? data : [];
-                
-                if (movies.length === 0) {
-                    var li = document.createElement('li');
-                    li.textContent = 'No movies yet.';
-                    li.style.color = '#666';
-                    ul.appendChild(li);
-                    return;
-                }
-                
-                movies.forEach(function (m) {
-                    var li = document.createElement('li');
-                    
-                    var info = document.createElement('span');
-                    info.textContent =
-                        (m.name || '') + ' (' + (m.year || '') + ') – ' +
-                        (m.duration || 0) + ' min – ID: ' + (m.id || '');
-                    
-                    var delBtn = document.createElement('button');
-                    delBtn.type = 'button';
-                    delBtn.className = 'btn btn-danger btn-sm';
-                    delBtn.textContent = 'Delete';
-                    delBtn.onclick = function () {
-                        if (!confirm('Delete movie "' + (m.name || '') + '"?')) return;
-                        deleteMovie(m.id);
-                    };
-                    
-                    li.appendChild(info);
-                    li.appendChild(delBtn);
-                    ul.appendChild(li);
-                });
+                allMovies = data || [];
+                renderMovies();
             })
-            .catch(function () {
-                showError('Failed to load movies');
-            });
+            .catch(function (err) { showError(err.message); });
     }
 
-    function deleteMovie(id) {
-        if (!id) return;
-        fetch(ADMIN_BASE + '/movies/' + id, {
-            method: 'DELETE',
-            headers: authHeaders()
-        })
-            .then(function (r) { return r.json(); })
-            .then(function () {
-                loadMovies();
-                showError('');
-            })
-            .catch(function () {
-                showError('Failed to delete movie');
-            });
+    function renderMovies() {
+        var ul = document.getElementById('admin-movies');
+        var pageInfo = document.getElementById('movies-page-info');
+        var select = document.querySelector('#form-session select[name="movie_id"]');
+        if (!ul || !pageInfo) return;
+
+        ul.innerHTML = '';
+        if (select) select.innerHTML = '<option value="">Select Movie</option>';
+
+        // Update all dropdown regardless of pagination for movies list
+        allMovies.forEach(function (m) {
+            if (select) {
+                var opt = document.createElement('option');
+                opt.value = m.id;
+                opt.textContent = m.name;
+                select.appendChild(opt);
+            }
+        });
+
+        var startIdx = (moviesPage - 1) * perPage;
+        var endIdx = startIdx + perPage;
+        var pageData = allMovies.slice(startIdx, endIdx);
+
+        pageData.forEach(function (m) {
+            var li = document.createElement('li');
+            li.className = 'admin-list-item';
+            li.innerHTML = `
+                <div class="item-info">
+                  <strong>${m.name}</strong> (${m.duration} min)<br>
+                  <small>ID: ${m.id}</small>
+                </div>
+                <button type="button" class="btn btn-danger btn-sm del-movie" data-id="${m.id}">Delete</button>
+            `;
+            ul.appendChild(li);
+        });
+
+        var totalPages = Math.ceil(allMovies.length / perPage) || 1;
+        pageInfo.textContent = 'Page ' + moviesPage + ' of ' + totalPages;
+
+        document.getElementById('prev-movies').disabled = moviesPage === 1;
+        document.getElementById('next-movies').disabled = moviesPage >= totalPages;
+
+        ul.querySelectorAll('.del-movie').forEach(function (btn) {
+            btn.onclick = function () {
+                var id = btn.dataset.id;
+                if (confirm('Delete this movie?')) {
+                    window.api.adminDeleteMovie(id).then(loadMovies).catch(function (err) { showError(err.message); });
+                }
+            };
+        });
     }
 
     function loadSessions() {
-        fetch(API_BASE + '/sessions/upcoming')
-            .then(function (r) { return r.json(); })
+        window.api.fetchUpcomingSessions()
             .then(function (data) {
-                var ul = document.getElementById('admin-sessions');
-                if (!ul) return;
-                
-                ul.innerHTML = '';
-                var sessions = Array.isArray(data) ? data : [];
-                
-                if (sessions.length === 0) {
-                    var li = document.createElement('li');
-                    li.textContent = 'No upcoming sessions.';
-                    li.style.color = '#666';
-                    ul.appendChild(li);
-                    return;
+                allSessions = data || [];
+                renderSessions();
+            })
+            .catch(function (err) { showError(err.message); });
+    }
+
+    function renderSessions() {
+        var ul = document.getElementById('admin-sessions');
+        var pageInfo = document.getElementById('sessions-page-info');
+        if (!ul || !pageInfo) return;
+
+        ul.innerHTML = '';
+        var startIdx = (sessionsPage - 1) * perPage;
+        var endIdx = startIdx + perPage;
+        var pageData = allSessions.slice(startIdx, endIdx);
+
+        pageData.forEach(function (s) {
+            var start = s.start_time ? new Date(s.start_time).toLocaleString() : '';
+            var li = document.createElement('li');
+            li.className = 'admin-list-item';
+            li.innerHTML = `
+                <div class="item-info">
+                  <strong>${start}</strong> — Price: ${s.price} ₸<br>
+                  <small>Movie: ${s.movie_id}, Hall: ${s.hall_id}</small>
+                </div>
+                <button type="button" class="btn btn-danger btn-sm del-session" data-id="${s.id}">Delete</button>
+            `;
+            ul.appendChild(li);
+        });
+
+        var totalPages = Math.ceil(allSessions.length / perPage) || 1;
+        pageInfo.textContent = 'Page ' + sessionsPage + ' of ' + totalPages;
+
+        document.getElementById('prev-sessions').disabled = sessionsPage === 1;
+        document.getElementById('next-sessions').disabled = sessionsPage >= totalPages;
+
+        ul.querySelectorAll('.del-session').forEach(function (btn) {
+            btn.onclick = function () {
+                var id = btn.dataset.id;
+                if (confirm('Delete this session?')) {
+                    window.api.adminDeleteSession(id).then(loadSessions).catch(function (err) { showError(err.message); });
                 }
-                
-                sessions.forEach(function (s) {
-                    var li = document.createElement('li');
-                    
-                    var start = s.start_time ? new Date(s.start_time).toLocaleString() : '';
-                    
-                    var info = document.createElement('span');
-                    info.textContent =
-                        'ID: ' + (s.id || '') + ' – Movie: ' + (s.movie_id || '') +
-                        ', Hall: ' + (s.hall_id || '') + ' – ' + start +
-                        ' ($' + (s.price != null ? s.price : 0) + ')';
-                    
-                    var delBtn = document.createElement('button');
-                    delBtn.type = 'button';
-                    delBtn.className = 'btn btn-danger btn-sm';
-                    delBtn.textContent = 'Delete';
-                    delBtn.onclick = function () {
-                        if (!confirm('Delete this session?')) return;
-                        deleteSession(s.id);
-                    };
-                    
-                    li.appendChild(info);
-                    li.appendChild(delBtn);
-                    ul.appendChild(li);
-                });
-            })
-            .catch(function () {
-                showError('Failed to load sessions');
-            });
+            };
+        });
     }
 
-    function deleteSession(id) {
-        if (!id) return;
-        fetch(ADMIN_BASE + '/sessions/' + id, {
-            method: 'DELETE',
-            headers: authHeaders()
-        })
-            .then(function (r) { return r.json(); })
-            .then(function () {
-                loadSessions();
-                showError('');
-            })
-            .catch(function () {
-                showError('Failed to delete session');
-            });
-    }
-
-    // ========== BOOKINGS ==========
-    
     function loadBookings() {
-        fetch(ADMIN_BASE + '/bookings', { headers: authHeaders() })
-            .then(function (r) { return r.json(); })
+        window.api.adminFetchBookings()
             .then(function (data) {
-                var ul = document.getElementById('admin-bookings');
-                var noBookings = document.getElementById('no-bookings');
-                if (!ul) return;
-                
-                ul.innerHTML = '';
-                var bookings = Array.isArray(data) ? data : [];
-                
-                if (bookings.length === 0) {
-                    if (noBookings) noBookings.style.display = 'block';
-                    return;
-                }
-                
-                if (noBookings) noBookings.style.display = 'none';
-                
-                bookings.forEach(function (b) {
-                    var li = document.createElement('li');
-                    li.textContent =
-                        'Session: ' + (b.session_id || '') +
-                        ' – Row ' + (b.row_number || '') + ', Seat ' + (b.seat_number || '') +
-                        ' – ' + (b.status || 'confirmed') +
-                        ' – User ID: ' + (b.user_id || '');
-                    ul.appendChild(li);
-                });
+                allBookings = data || [];
+                renderBookings();
             })
-            .catch(function () {
-                showError('Failed to load bookings');
-            });
+            .catch(function (err) { showError(err.message); });
     }
 
-    // ========== FORM HANDLERS ==========
-    
-    function setupHallForm() {
-        var form = document.getElementById('form-hall');
-        if (!form) return;
-        
-        form.onsubmit = function (e) {
-            e.preventDefault();
-            
-            var payload = {
-                name: form.name.value.trim(),
-                location: form.location.value.trim(),
-                total_rows: parseInt(form.total_rows.value, 10) || 0,
-                seats_per_row: parseInt(form.seats_per_row.value, 10) || 0
-            };
+    function renderBookings() {
+        var ul = document.getElementById('admin-bookings');
+        var pageInfo = document.getElementById('bookings-page-info');
+        if (!ul || !pageInfo) return;
 
-            fetch(ADMIN_BASE + '/halls', {
-                method: 'POST',
-                headers: authHeaders(),
-                body: JSON.stringify(payload)
-            })
-                .then(function (r) {
-                    return r.json().then(function (d) {
-                        return { ok: r.ok, data: d };
-                    });
-                })
-                .then(function (res) {
-                    if (res.ok) {
-                        form.reset();
-                        loadHalls();
-                        showError('');
-                    } else {
-                        showError(res.data.error || 'Error creating hall');
-                    }
-                })
-                .catch(function () {
-                    showError('Network error');
-                });
-        };
+        ul.innerHTML = '';
+        var startIdx = (bookingsPage - 1) * perPage;
+        var endIdx = startIdx + perPage;
+        var pageData = allBookings.slice(startIdx, endIdx);
+
+        pageData.forEach(function (b) {
+            var li = document.createElement('li');
+            li.className = 'admin-list-item';
+            li.innerHTML = `
+                <div class="item-info">
+                  <strong>Session: ${b.session_id}</strong> — Row ${b.row_number}, Seat ${b.seat_number}<br>
+                  <small>Status: ${b.status} | User: ${b.user_id}</small>
+                </div>
+            `;
+            ul.appendChild(li);
+        });
+
+        var totalPages = Math.ceil(allBookings.length / perPage) || 1;
+        pageInfo.textContent = 'Page ' + bookingsPage + ' of ' + totalPages;
+
+        document.getElementById('prev-bookings').disabled = bookingsPage === 1;
+        document.getElementById('next-bookings').disabled = bookingsPage >= totalPages;
     }
 
-    function setupMovieForm() {
-        var form = document.getElementById('form-movie');
-        if (!form) return;
-        
-        form.onsubmit = function (e) {
-            e.preventDefault();
-            
-            var payload = {
-                name: form.name.value.trim(),
-                year: parseInt(form.year.value, 10) || 2024,
-                duration: parseInt(form.duration.value, 10) || 0,
-                description: form.description.value.trim(),
-                genres: form.genres.value.trim(),
-                age_restriction: form.age_restriction.value.trim(),
-                poster_url: form.poster_url.value.trim(),
-                trailer_url: form.trailer_url.value.trim(),
-                rating: parseFloat(form.rating.value) || 0
-            };
-
-            fetch(ADMIN_BASE + '/movies', {
-                method: 'POST',
-                headers: authHeaders(),
-                body: JSON.stringify(payload)
-            })
-                .then(function (r) {
-                    return r.json().then(function (d) {
-                        return { ok: r.ok, data: d };
-                    });
-                })
-                .then(function (res) {
-                    if (res.ok) {
-                        form.reset();
-                        loadMovies();
-                        showError('');
-                    } else {
-                        showError(res.data.error || 'Error creating movie');
-                    }
-                })
-                .catch(function () {
-                    showError('Network error');
-                });
-        };
-    }
-
-    function setupSessionForm() {
-        var form = document.getElementById('form-session');
-        if (!form) return;
-        
-        form.onsubmit = function (e) {
-            e.preventDefault();
-            
-            var startStr = form.start_time.value;
-            if (!startStr) {
-                showError('Enter date and time');
-                return;
-            }
-            
-            var start = new Date(startStr);
-            
-            var payload = {
-                movie_id: form.movie_id.value.trim(),
-                hall_id: form.hall_id.value.trim(),
-                start_time: start.toISOString(),
-                price: parseFloat(form.price.value) || 0,
-                format: form.format.value,
-                language: form.language.value,
-                age_restriction: form.age_restriction.value.trim()
-            };
-
-            fetch(ADMIN_BASE + '/sessions', {
-                method: 'POST',
-                headers: authHeaders(),
-                body: JSON.stringify(payload)
-            })
-                .then(function (r) {
-                    return r.json().then(function (d) {
-                        return { ok: r.ok, data: d };
-                    });
-                })
-                .then(function (res) {
-                    if (res.ok) {
-                        form.reset();
-                        loadSessions();
-                        showError('');
-                    } else {
-                        showError(res.data.error || 'Error creating session');
-                    }
-                })
-                .catch(function () {
-                    showError('Network error');
-                });
-        };
-    }
-
-    // ========== INIT ==========
-    
     function init() {
         updateNav();
-
-        // Check if user is admin
         if (!window.auth || !auth.isLoggedIn() || !auth.isAdmin()) {
-            document.getElementById('admin-forbidden').style.display = 'block';
-            document.getElementById('admin-content').style.display = 'none';
+            location.replace('index.html');
             return;
         }
-
         document.getElementById('admin-forbidden').style.display = 'none';
         document.getElementById('admin-content').style.display = 'block';
 
-        // Load all data
         loadHalls();
         loadMovies();
         loadSessions();
         loadBookings();
 
-        // Setup forms
-        setupHallForm();
-        setupMovieForm();
-        setupSessionForm();
+        document.getElementById('prev-sessions').onclick = function () {
+            if (sessionsPage > 1) {
+                sessionsPage--;
+                renderSessions();
+            }
+        };
+
+        document.getElementById('next-sessions').onclick = function () {
+            var totalPages = Math.ceil(allSessions.length / perPage);
+            if (sessionsPage < totalPages) {
+                sessionsPage++;
+                renderSessions();
+            }
+        };
+
+        document.getElementById('prev-movies').onclick = function () {
+            if (moviesPage > 1) {
+                moviesPage--;
+                renderMovies();
+            }
+        };
+
+        document.getElementById('next-movies').onclick = function () {
+            var totalPages = Math.ceil(allMovies.length / perPage);
+            if (moviesPage < totalPages) {
+                moviesPage++;
+                renderMovies();
+            }
+        };
+
+        document.getElementById('prev-bookings').onclick = function () {
+            if (bookingsPage > 1) {
+                bookingsPage--;
+                renderBookings();
+            }
+        };
+
+        document.getElementById('next-bookings').onclick = function () {
+            var totalPages = Math.ceil(allBookings.length / perPage);
+            if (bookingsPage < totalPages) {
+                bookingsPage++;
+                renderBookings();
+            }
+        };
+
+        document.getElementById('form-hall').onsubmit = function (e) {
+            e.preventDefault();
+            var payload = {
+                name: this.name.value.trim(),
+                location: this.location.value.trim(),
+                total_rows: parseInt(this.total_rows.value, 10) || 0,
+                seats_per_row: parseInt(this.seats_per_row.value, 10) || 0
+            };
+            window.api.adminCreateHall(payload)
+                .then(function () { e.target.reset(); loadHalls(); showError(''); })
+                .catch(function (err) { showError(err.message); });
+        };
+
+        document.getElementById('form-movie').onsubmit = function (e) {
+            e.preventDefault();
+            var payload = {
+                name: this.name.value.trim(),
+                duration: parseInt(this.duration.value, 10) || 0,
+                description: this.description.value.trim(),
+                poster_url: this.poster_url.value.trim(),
+                rating: parseFloat(this.rating.value) || 0
+            };
+            window.api.adminCreateMovie(payload)
+                .then(function () { e.target.reset(); loadMovies(); showError(''); })
+                .catch(function (err) { showError(err.message); });
+        };
+
+        document.getElementById('form-session').onsubmit = function (e) {
+            e.preventDefault();
+            var start = new Date(this.start_time.value);
+            var payload = {
+                movie_id: this.movie_id.value,
+                hall_id: this.hall_id.value,
+                start_time: start.toISOString(),
+                price: parseFloat(this.price.value) || 0
+            };
+            if (!payload.movie_id || !payload.hall_id) {
+                showError('Please select a movie and a hall');
+                return;
+            }
+            window.api.adminCreateSession(payload)
+                .then(function () { e.target.reset(); loadSessions(); showError(''); })
+                .catch(function (err) { showError(err.message); });
+        };
     }
 
     if (document.readyState === 'loading') {

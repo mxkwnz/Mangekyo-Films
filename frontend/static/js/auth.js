@@ -25,14 +25,17 @@
     },
     getAuthHeaders: function () {
       var u = getStored();
-      if (!u || !u.id) return {};
-      return {
-        'X-User-ID': u.id,
-        'X-User-Role': u.role || 'USER',
-        'Content-Type': 'application/json'
-      };
+      if (!u) return {};
+      var headers = { 'Content-Type': 'application/json' };
+      if (u.token) {
+        headers['Authorization'] = 'Bearer ' + u.token;
+      } else if (u.id) {
+        headers['X-User-ID'] = u.id;
+        headers['X-User-Role'] = u.role || 'USER';
+      }
+      return headers;
     },
-    /** Role checks: GUEST (not logged in), USER (customer), ADMIN */
+
     hasRole: function (role) {
       var u = getStored();
       if (!u) return role === 'GUEST';
@@ -173,8 +176,8 @@
       currentMode = mode;
       showError('');
       if (mode === 'login') {
-        document.getElementById('auth-modal-title').textContent = 'Login';
-        document.getElementById('auth-register-fields').style.display = 'none';
+        title.textContent = 'Login';
+        registerFields.style.display = 'none';
         submit.textContent = 'Log in';
         tabs.querySelectorAll('button')[0].classList.add('active');
         tabs.querySelectorAll('button')[1].classList.remove('active');
@@ -182,9 +185,9 @@
         last.removeAttribute('required');
         phone.removeAttribute('required');
       } else {
-        document.getElementById('auth-modal-title').textContent = 'Register';
-        document.getElementById('auth-register-fields').style.display = 'flex';
-        document.getElementById('auth-register-fields').style.flexDirection = 'column';
+        title.textContent = 'Register';
+        registerFields.style.display = 'flex';
+        registerFields.style.flexDirection = 'column';
         submit.textContent = 'Register';
         tabs.querySelectorAll('button')[1].classList.add('active');
         tabs.querySelectorAll('button')[0].classList.remove('active');
@@ -194,15 +197,20 @@
       }
     }
 
-    function handleAuthSuccess(user) {
-      if (!user) return;
-      setStored({
-        id: user.id,
+    function handleAuthSuccess(res) {
+      if (!res) return;
+      var user = res.user || res.data || res;
+
+      var toStore = {
+        id: user.id || user._id,
         role: user.role || 'USER',
         email: user.email,
         first_name: user.first_name,
-        last_name: user.last_name
-      });
+        last_name: user.last_name,
+        token: res.token || user.token
+      };
+
+      setStored(toStore);
     }
 
     form.onsubmit = function (e) {
@@ -233,13 +241,20 @@
 
       apiFn(payload)
         .then(function (res) {
-          var user = res && (res.user || res.data && res.data.user || res);
-          handleAuthSuccess(user);
+
+          handleAuthSuccess(res);
           window.closeAuthModal();
-          if (typeof currentCb === 'function') currentCb();
+
+          if (typeof currentCb === 'function') {
+            currentCb();
+          } else {
+
+            location.reload();
+          }
           submit.disabled = false;
         })
         .catch(function (err) {
+
           showError((err && err.message) || 'Network error. Please try again.');
           submit.disabled = false;
         });
@@ -257,8 +272,8 @@
       document.getElementById('auth-modal-overlay').classList.remove('is-open');
     };
 
-    switchMode('login');
     document.body.appendChild(overlay);
+    switchMode('login');
   }
 
   if (document.readyState === 'loading') {

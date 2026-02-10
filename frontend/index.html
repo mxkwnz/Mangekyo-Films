@@ -1,58 +1,59 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>Mangekyo Cinema - Home</title>
-    <link rel="stylesheet" href="static/css/main.css">
-    <link rel="stylesheet" href="static/css/auth-modal.css">
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Cinema — Home</title>
+  <link rel="stylesheet" href="static/css/main.css">
+  <link rel="stylesheet" href="static/css/auth-modal.css">
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600&display=swap" rel="stylesheet">
 </head>
+
 <body>
-    <nav class="navbar">
-        <div class="container">
-            <div class="logo">Mangekyo Cinema</div>
-            <div class="nav-links">
-                <ul>
-                    <li><a href="index.html">Home</a></li>
-                    <li><a href="profile.html" id="nav-profile" style="display:none;">Profile</a></li>
-                    <li><a href="admin.html" id="nav-admin" style="display:none;">Admin</a></li>
-                </ul>
-                <span id="user-span" class="nav-user"></span>
-            </div>
+  <header class="site-header">
+    <div class="site-header-inner">
+      <div class="site-header-title">
+        <div class="mangekyo-logo">
+          <div class="iris-ring"></div>
         </div>
-    </nav>
-
-    <main>
-        <div class="container">
-            <section class="page-heading">
-                <h1>Now in Cinemas</h1>
-                <p>Browse movies, filter by genre, and start your booking journey.</p>
-            </section>
-
-            <section class="filters-row">
-                <div>
-                    <label for="search-title">Search</label>
-                    <input type="search" id="search-title" placeholder="Search by movie title...">
-                </div>
-                <div>
-                    <label for="filter-genre">Genre</label>
-                    <select id="filter-genre">
-                        <option value="">All Genres</option>
-                    </select>
-                </div>
-            </section>
-
-            <section id="movies-list" class="grid-3" aria-live="polite"></section>
-            <p id="movies-error" class="text-error" style="display:none;"></p>
+        <span>Mangekyo Cinema</span>
+      </div>
+      <nav class="site-nav">
+        <div class="site-nav-primary">
+          <a href="index.html">Home</a>
+          <a href="profile.html" id="nav-profile" style="display:none;">Profile</a>
+          <a href="admin.html" id="nav-admin" style="display:none;">Admin</a>
         </div>
-    </main>
-
-    <footer>
-        <p>&copy; 2026 Mangekyo Cinema. All rights reserved.</p>
-    </footer>
-
-    <script src="static/js/auth.js"></script>
-    <script src="static/js/api.js"></script>
-    <script src="static/js/home.js"></script>
+        <span id="user-span" class="site-nav-user"></span>
+      </nav>
+    </div>
+  </header>
+  <main>
+    <div class="page-shell">
+      <section class="page-heading">
+        <h1>Now in cinemas</h1>
+        <p>Browse movies, filter by genre, and start your booking.</p>
+      </section>
+      <section class="filters-row">
+        <div>
+          <label for="search-title">Search</label>
+          <input type="search" id="search-title" placeholder="Movie title">
+        </div>
+        <div>
+          <label for="filter-genre">Genre</label>
+          <select id="filter-genre">
+            <option value="">All</option>
+          </select>
+        </div>
+      </section>
+      <section id="movies-list" class="card-grid" aria-live="polite"></section>
+      <p id="movies-error" class="error-msg" style="display:none;"></p>
+    </div>
+  </main>
+  <script src="static/js/auth.js"></script>
+  <script src="static/js/api.js"></script>
+  <script src="static/js/home.js"></script>
 </body>
+
 </html>

@@ -1,50 +1,48 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>Select Session - Mangekyo Cinema</title>
-    <link rel="stylesheet" href="static/css/main.css">
-    <link rel="stylesheet" href="static/css/auth-modal.css">
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Sessions — Mangekyo Cinema</title>
+  <link rel="stylesheet" href="static/css/main.css">
+  <link rel="stylesheet" href="static/css/auth-modal.css">
 </head>
+
 <body>
-    <nav class="navbar">
-        <div class="container">
-            <div class="logo">Mangekyo Cinema</div>
-            <div class="nav-links">
-                <ul>
-                    <li><a href="index.html">Home</a></li>
-                    <li><a href="profile.html" id="sessions-nav-profile" style="display:none;">Profile</a></li>
-                    <li><a href="admin.html" id="sessions-nav-admin" style="display:none;">Admin</a></li>
-                </ul>
-                <span id="sessions-user-span" class="nav-user"></span>
-            </div>
+  <header class="site-header">
+    <div class="site-header-inner">
+      <div class="site-header-title">
+        <div class="mangekyo-logo">
+          <div class="iris-ring"></div>
         </div>
-    </nav>
-
-    <main>
-        <div class="container">
-            <section class="page-heading">
-                <h1>Choose a Session</h1>
-                <p>Select the date and time that works best for you.</p>
-            </section>
-
-            <section id="sessions-summary"></section>
-            
-            <section id="date-selector" aria-label="Date selector"></section>
-            
-            <section id="sessions-list" class="card-grid" aria-live="polite"></section>
-            
-            <p id="sessions-error" class="text-error" style="display:none;"></p>
+        <span>Mangekyo Cinema</span>
+      </div>
+      <nav class="site-nav">
+        <div class="site-nav-primary">
+          <a href="index.html">Home</a>
+          <a href="profile.html" id="nav-profile" style="display:none;">Profile</a>
+          <a href="admin.html" id="nav-admin" style="display:none;">Admin</a>
         </div>
-    </main>
-
-    <footer>
-        <p>&copy; 2026 Mangekyo Cinema. All rights reserved.</p>
-    </footer>
-
-    <script src="static/js/auth.js"></script>
-    <script src="static/js/api.js"></script>
-    <script src="static/js/sessions.js"></script>
+        <span id="user-span" class="site-nav-user"></span>
+      </nav>
+    </div>
+  </header>
+  <main>
+    <div class="page-shell">
+      <section class="page-heading">
+        <h1>Choose a session</h1>
+        <p>Select the date and time that works best for you.</p>
+      </section>
+      <section id="sessions-summary" style="display:flex;gap:1rem;align-items:center;margin-bottom:1rem;"></section>
+      <section id="date-selector" class="filters-row"></section>
+      <section id="sessions-list" class="card-grid" aria-live="polite"></section>
+      <p id="sessions-error" class="error-msg" style="display:none;"></p>
+    </div>
+  </main>
+  <script src="static/js/auth.js"></script>
+  <script src="static/js/api.js"></script>
+  <script src="static/js/sessions.js"></script>
 </body>
+
 </html>
