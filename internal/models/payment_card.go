@@ -10,18 +10,20 @@ import (
 )
 
 type PaymentCard struct {
-	ID         primitive.ObjectID `json:"id" bson:"_id,omitempty"`
-	UserID     primitive.ObjectID `json:"user_id" bson:"user_id"`
-	CardNumber string             `json:"card_number" bson:"card_number"`
-	ExpiryDate string             `json:"expiry_date" bson:"expiry_date"` // Format: MM/YY
-	CVV        string             `json:"cvv" bson:"cvv"`
-	CreatedAt  time.Time          `json:"created_at" bson:"created_at"`
+	ID             primitive.ObjectID `json:"id" bson:"_id,omitempty"`
+	UserID         primitive.ObjectID `json:"user_id" bson:"user_id"`
+	CardHolderName string             `json:"card_holder_name" bson:"card_holder_name"`
+	CardNumber     string             `json:"card_number" bson:"card_number"`
+	ExpiryDate     string             `json:"expiry_date" bson:"expiry_date"`
+	CVV            string             `json:"cvv" bson:"cvv"`
+	CreatedAt      time.Time          `json:"created_at" bson:"created_at"`
 }
 
 type PaymentCardCreate struct {
-	CardNumber string `json:"card_number" binding:"required"`
-	ExpiryDate string `json:"expiry_date" binding:"required"`
-	CVV        string `json:"cvv" binding:"required"`
+	CardHolderName string `json:"card_holder_name" binding:"required"`
+	CardNumber     string `json:"card_number" binding:"required"`
+	ExpiryDate     string `json:"expiry_date" binding:"required"`
+	CVV            string `json:"cvv" binding:"required"`
 }
 
 func ValidateCardNumber(cardNumber string) error {
@@ -78,6 +80,10 @@ func ValidateCVV(cvv string) error {
 }
 
 func (pc *PaymentCardCreate) Validate() error {
+	if pc.CardHolderName == "" {
+		return errors.New("card holder name is required")
+	}
+
 	if err := ValidateCardNumber(pc.CardNumber); err != nil {
 		return err
 	}

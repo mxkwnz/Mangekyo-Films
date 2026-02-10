@@ -33,11 +33,12 @@ func (s *PaymentCardService) CreateCard(ctx context.Context, userID primitive.Ob
 	}
 
 	card := &models.PaymentCard{
-		UserID:     userID,
-		CardNumber: req.CardNumber,
-		ExpiryDate: req.ExpiryDate,
-		CVV:        req.CVV,
-		CreatedAt:  time.Now(),
+		UserID:         userID,
+		CardHolderName: req.CardHolderName,
+		CardNumber:     req.CardNumber,
+		ExpiryDate:     req.ExpiryDate,
+		CVV:            req.CVV,
+		CreatedAt:      time.Now(),
 	}
 
 	err = s.cardRepo.Create(ctx, card)

@@ -74,7 +74,7 @@ func (s *PaymentService) CreatePayment(ctx context.Context, userID primitive.Obj
 	newBalance := user.Balance - req.Amount
 	err = s.userRepo.UpdateBalance(ctx, userID, newBalance)
 	if err != nil {
-		// Rollback would be needed here in production
+
 		return nil, errors.New("failed to process payment")
 	}
 
@@ -145,20 +145,17 @@ func (s *PaymentService) RefundPayment(ctx context.Context, paymentID primitive.
 	return nil
 }
 
-// TopUpBalance adds money to user's balance using a payment card
 func (s *PaymentService) TopUpBalance(ctx context.Context, userID primitive.ObjectID, req models.PaymentCreate) (*models.Payment, error) {
-	// Validate payment request
+
 	if err := req.Validate(); err != nil {
 		return nil, err
 	}
 
-	// Verify user exists
 	user, err := s.userRepo.FindByID(ctx, userID)
 	if err != nil {
 		return nil, errors.New("user not found")
 	}
 
-	// Verify payment card exists and belongs to user
 	card, err := s.cardRepo.FindByID(ctx, req.PaymentCardID)
 	if err != nil {
 		return nil, errors.New("payment card not found")
@@ -168,7 +165,6 @@ func (s *PaymentService) TopUpBalance(ctx context.Context, userID primitive.Obje
 		return nil, errors.New("unauthorized access to payment card")
 	}
 
-	// Create payment record for top-up
 	payment := &models.Payment{
 		UserID:          userID,
 		PaymentCardID:   req.PaymentCardID,
@@ -183,19 +179,11 @@ func (s *PaymentService) TopUpBalance(ctx context.Context, userID primitive.Obje
 		return nil, err
 	}
 
-	// Add amount to user balance
 	newBalance := user.Balance + req.Amount
 	err = s.userRepo.UpdateBalance(ctx, userID, newBalance)
 	if err != nil {
 		return nil, errors.New("failed to process top-up")
 	}
-
-	// Update payment status to completed
-	err = s.paymentRepo.UpdateStatus(ctx, payment.ID, models.PaymentCompleted)
-	if err != nil {
-		return nil, err
-	}
-	payment.Status = models.PaymentCompleted
 
 	return payment, nil
 }
