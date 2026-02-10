@@ -16,6 +16,7 @@ type Router struct {
 	hallHandler        *handlers.HallHandler
 	paymentCardHandler *handlers.PaymentCardHandler
 	paymentHandler     *handlers.PaymentHandler
+	genreHandler       *handlers.GenreHandler
 }
 
 func NewRouter(
@@ -27,6 +28,7 @@ func NewRouter(
 	hallHandler *handlers.HallHandler,
 	paymentCardHandler *handlers.PaymentCardHandler,
 	paymentHandler *handlers.PaymentHandler,
+	genreHandler *handlers.GenreHandler,
 ) *Router {
 	return &Router{
 		authHandler:        authHandler,
@@ -37,6 +39,7 @@ func NewRouter(
 		hallHandler:        hallHandler,
 		paymentCardHandler: paymentCardHandler,
 		paymentHandler:     paymentHandler,
+		genreHandler:       genreHandler,
 	}
 }
 
@@ -56,6 +59,7 @@ func (r *Router) Setup() *gin.Engine {
 		public.GET("/sessions/:id", r.sessionHandler.GetSession)
 		public.GET("/sessions/:id/booked-seats", r.bookingHandler.GetSessionBookedSeats)
 		public.GET("/halls/:id", r.hallHandler.GetHall)
+		public.GET("/genres", r.genreHandler.GetAllGenres)
 	}
 
 	user := router.Group("/api")
@@ -103,6 +107,9 @@ func (r *Router) Setup() *gin.Engine {
 		admin.GET("/bookings/session/:sessionId", r.bookingHandler.GetSessionTickets)
 
 		admin.DELETE("/reviews/:id", r.reviewHandler.DeleteReview)
+
+		admin.POST("/genres", r.genreHandler.CreateGenre)
+		admin.DELETE("/genres/:id", r.genreHandler.DeleteGenre)
 
 		admin.GET("/payments", r.paymentHandler.GetAllPayments)
 		admin.GET("/payments/user/:userId", r.paymentHandler.GetUserPaymentsByID)
