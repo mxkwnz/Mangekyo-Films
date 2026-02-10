@@ -45,10 +45,10 @@ func main() {
 	paymentCardRepo := repositories.NewPaymentCardRepository(db.Database)
 	paymentRepo := repositories.NewPaymentRepository(db.Database)
 
-	authService := services.NewAuthService(userRepo)
+	authService := services.NewAuthService(userRepo, reviewRepo)
 	movieService := services.NewMovieService(movieRepo, genreRepo)
 	sessionService := services.NewSessionService(sessionRepo, hallRepo, movieRepo)
-	bookingService := services.NewBookingService(ticketRepo, sessionRepo, userRepo, hallRepo, paymentRepo)
+	bookingService := services.NewBookingService(ticketRepo, sessionRepo, userRepo, hallRepo, movieRepo, paymentRepo)
 	reviewService := services.NewReviewService(reviewRepo, movieRepo, userRepo)
 	paymentCardService := services.NewPaymentCardService(paymentCardRepo, userRepo)
 	paymentService := services.NewPaymentService(paymentRepo, paymentCardRepo, userRepo)

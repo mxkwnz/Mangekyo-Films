@@ -43,7 +43,7 @@ func NewRouter(
 func (r *Router) Setup() *gin.Engine {
 	router := gin.Default()
 	router.Static("/ui", "./frontend")
-	
+
 	public := router.Group("/api")
 	{
 		public.POST("/auth/register", r.authHandler.Register)
@@ -61,20 +61,23 @@ func (r *Router) Setup() *gin.Engine {
 	user := router.Group("/api")
 	user.Use(middleware.AuthRequired())
 	{
-		user.POST("/bookings", r.bookingHandler.BookTicket)
+		user.GET("/auth/me", r.authHandler.GetMe)
+		user.PUT("/auth/me", r.authHandler.UpdateProfile)
+		user.POST("/bookings", r.bookingHandler.BookTickets)
 		user.DELETE("/bookings/:id", r.bookingHandler.CancelTicket)
 		user.GET("/bookings/my", r.bookingHandler.GetMyTickets)
 
 		user.POST("/reviews", r.reviewHandler.CreateReview)
 		user.GET("/reviews/movie/:movieId", r.reviewHandler.GetMovieReviews)
+		user.GET("/reviews/my", r.reviewHandler.GetMyReviews)
+		user.PUT("/reviews/:id", r.reviewHandler.UpdateReview)
+		user.DELETE("/reviews/:id", r.reviewHandler.DeleteReview)
 
-		// Payment card routes
 		user.POST("/payment-cards", r.paymentCardHandler.CreateCard)
 		user.GET("/payment-cards", r.paymentCardHandler.GetMyCards)
 		user.GET("/payment-cards/:id", r.paymentCardHandler.GetCard)
 		user.DELETE("/payment-cards/:id", r.paymentCardHandler.DeleteCard)
 
-		// Payment routes
 		user.POST("/payments/topup", r.paymentHandler.TopUpBalance)
 		user.GET("/payments", r.paymentHandler.GetMyPayments)
 		user.GET("/payments/:id", r.paymentHandler.GetPayment)
@@ -101,7 +104,6 @@ func (r *Router) Setup() *gin.Engine {
 
 		admin.DELETE("/reviews/:id", r.reviewHandler.DeleteReview)
 
-		// Admin payment routes
 		admin.GET("/payments", r.paymentHandler.GetAllPayments)
 		admin.GET("/payments/user/:userId", r.paymentHandler.GetUserPaymentsByID)
 		admin.GET("/payment-cards/user/:userId", r.paymentCardHandler.GetUserCards)

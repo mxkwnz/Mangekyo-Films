@@ -85,10 +85,53 @@ func (r *ReviewRepository) GetAverageRating(ctx context.Context, movieID primiti
 	return result[0].AvgRating, nil
 }
 
+func (r *ReviewRepository) GetByUser(ctx context.Context, userID primitive.ObjectID) ([]models.Review, error) {
+	filter := bson.M{
+		"$or": []bson.M{
+			{"user_id": userID},
+			{"user_id": userID.Hex()},
+		},
+	}
+	cursor, err := r.collection.Find(ctx, filter)
+	if err != nil {
+		return nil, err
+	}
+	defer cursor.Close(ctx)
+
+	var reviews []models.Review
+	if err = cursor.All(ctx, &reviews); err != nil {
+		return nil, err
+	}
+	return reviews, nil
+}
+
 func (r *ReviewRepository) CheckUserReview(ctx context.Context, userID, movieID primitive.ObjectID) (bool, error) {
 	count, err := r.collection.CountDocuments(ctx, bson.M{
 		"user_id":  userID,
 		"movie_id": movieID,
 	})
 	return count > 0, err
+}
+
+func (r *ReviewRepository) Update(ctx context.Context, review *models.Review) error {
+	_, err := r.collection.UpdateOne(
+		ctx,
+		bson.M{"_id": review.ID},
+		bson.M{"$set": review},
+	)
+	return err
+}
+
+func (r *ReviewRepository) UpdateReviewerName(ctx context.Context, userID primitive.ObjectID, newName string) error {
+	_, err := r.collection.UpdateMany(
+		ctx,
+		bson.M{
+			"$or": []bson.M{
+				{"user_id": userID},
+				{"user_id": userID.Hex()},
+			},
+		},
+		bson.M{"$set": bson.M{"user_name": newName}},
+	)
+	return err
 }

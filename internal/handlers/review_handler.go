@@ -52,6 +52,44 @@ func (h *ReviewHandler) GetMovieReviews(c *gin.Context) {
 	c.JSON(http.StatusOK, reviews)
 }
 
+func (h *ReviewHandler) GetMyReviews(c *gin.Context) {
+	userID := c.MustGet("userID").(primitive.ObjectID)
+
+	reviews, err := h.reviewService.GetMyReviews(c.Request.Context(), userID)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+
+	c.JSON(http.StatusOK, reviews)
+}
+
+func (h *ReviewHandler) UpdateReview(c *gin.Context) {
+	reviewID, err := primitive.ObjectIDFromHex(c.Param("id"))
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "invalid review ID"})
+		return
+	}
+
+	userID := c.MustGet("userID").(primitive.ObjectID)
+
+	var req struct {
+		Rating  int    `json:"rating"`
+		Comment string `json:"comment"`
+	}
+	if err := c.ShouldBindJSON(&req); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+
+	if err := h.reviewService.UpdateReview(c.Request.Context(), reviewID, userID, req.Rating, req.Comment); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{"message": "review updated successfully"})
+}
+
 func (h *ReviewHandler) DeleteReview(c *gin.Context) {
 	reviewID, err := primitive.ObjectIDFromHex(c.Param("id"))
 	if err != nil {
