@@ -61,6 +61,7 @@ func (r *Router) Setup() *gin.Engine {
 		public.GET("/sessions/:id/booked-seats", r.bookingHandler.GetSessionBookedSeats)
 		public.GET("/halls/:id", r.hallHandler.GetHall)
 		public.GET("/genres", r.genreHandler.GetAllGenres)
+		public.GET("/reviews/movie/:movieId", r.reviewHandler.GetMovieReviews)
 	}
 
 	user := router.Group("/api")
@@ -73,7 +74,6 @@ func (r *Router) Setup() *gin.Engine {
 		user.GET("/bookings/my", r.bookingHandler.GetMyTickets)
 
 		user.POST("/reviews", r.reviewHandler.CreateReview)
-		user.GET("/reviews/movie/:movieId", r.reviewHandler.GetMovieReviews)
 		user.GET("/reviews/my", r.reviewHandler.GetMyReviews)
 		user.PUT("/reviews/:id", r.reviewHandler.UpdateReview)
 		user.DELETE("/reviews/:id", r.reviewHandler.DeleteReview)
