@@ -522,9 +522,9 @@ go run main.go
 curl -X POST http://localhost:8080/api/auth/register \
   -H "Content-Type: application/json" \
   -d '{
-    "first_name": "John",
-    "last_name": "Doe",
-    "email": "john@example.com",
+    "first_name": "User",
+    "last_name": "Resu",
+    "email": "user@example.com",
     "phone_number": "+77771234567",
     "password": "password123"
   }'
@@ -535,7 +535,7 @@ curl -X POST http://localhost:8080/api/auth/register \
 curl -X POST http://localhost:8080/api/auth/login \
   -H "Content-Type: application/json" \
   -d '{
-    "email": "john@example.com",
+    "email": "user@example.com",
     "password": "password123"
   }'
 ```
