@@ -25,10 +25,15 @@
     }
 
     function showError(msg, isSuccess) {
+        if (msg) {
+            window.showToast(msg, isSuccess ? 'success' : 'error');
+        }
         var el = document.getElementById('profile-error');
-        el.textContent = msg || '';
-        el.style.display = msg ? 'block' : 'none';
-        el.style.color = isSuccess ? '#2e7d32' : '#c62828';
+        if (el) {
+            el.textContent = msg || '';
+            el.style.display = msg ? 'block' : 'none';
+            el.style.color = isSuccess ? '#2e7d32' : '#c62828';
+        }
     }
 
     function load() {

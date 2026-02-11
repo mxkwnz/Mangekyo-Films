@@ -28,6 +28,10 @@ func (s *GenreService) GetGenreByID(ctx context.Context, id primitive.ObjectID) 
 	return s.genreRepo.FindByID(ctx, id)
 }
 
+func (s *GenreService) UpdateGenre(ctx context.Context, id primitive.ObjectID, genre *models.Genre) error {
+	return s.genreRepo.Update(ctx, id, genre)
+}
+
 func (s *GenreService) DeleteGenre(ctx context.Context, id primitive.ObjectID) error {
 	return s.genreRepo.Delete(ctx, id)
 }

@@ -52,11 +52,74 @@ func (s *MovieService) CreateMovie(ctx context.Context, movie *models.Movie) err
 }
 
 func (s *MovieService) GetAllMovies(ctx context.Context) ([]models.Movie, error) {
-	return s.movieRepo.GetAll(ctx)
+	movies, err := s.movieRepo.GetAll(ctx)
+	if err != nil {
+		return nil, err
+	}
+
+	// Batch fetch genres to avoid N+1 queries
+	genreIDMap := make(map[primitive.ObjectID]bool)
+	for _, m := range movies {
+		for _, gid := range m.Genres {
+			genreIDMap[gid] = true
+		}
+	}
+
+	uniqueGenreIDs := make([]primitive.ObjectID, 0, len(genreIDMap))
+	for gid := range genreIDMap {
+		uniqueGenreIDs = append(uniqueGenreIDs, gid)
+	}
+
+	genres, err := s.genreRepo.FindByIDs(ctx, uniqueGenreIDs)
+	if err != nil {
+		return nil, err
+	}
+
+	genreMap := make(map[primitive.ObjectID]string)
+	for _, g := range genres {
+		genreMap[g.ID] = g.Name
+	}
+
+	for i := range movies {
+		movie := &movies[i]
+		names := make([]string, 0, len(movie.Genres))
+		for _, gid := range movie.Genres {
+			if name, ok := genreMap[gid]; ok {
+				names = append(names, name)
+			}
+		}
+		movie.GenreNames = names
+	}
+
+	return movies, nil
 }
 
 func (s *MovieService) GetMovieByID(ctx context.Context, id primitive.ObjectID) (*models.Movie, error) {
-	return s.movieRepo.FindByID(ctx, id)
+	movie, err := s.movieRepo.FindByID(ctx, id)
+	if err != nil {
+		return nil, err
+	}
+	if err := s.populateGenreNames(ctx, movie); err != nil {
+		return nil, err
+	}
+	return movie, nil
+}
+
+func (s *MovieService) populateGenreNames(ctx context.Context, movie *models.Movie) error {
+	if len(movie.Genres) == 0 {
+		movie.GenreNames = []string{}
+		return nil
+	}
+	genres, err := s.genreRepo.FindByIDs(ctx, movie.Genres)
+	if err != nil {
+		return err
+	}
+	names := make([]string, len(genres))
+	for i, g := range genres {
+		names[i] = g.Name
+	}
+	movie.GenreNames = names
+	return nil
 }
 
 func (s *MovieService) UpdateMovie(ctx context.Context, id primitive.ObjectID, movie *models.Movie) error {

@@ -5,9 +5,15 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Admin — Cinema</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link rel="stylesheet" href="static/css/main.css">
   <link rel="stylesheet" href="static/css/auth-modal.css">
   <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600&display=swap" rel="stylesheet">
+  <link rel="icon" href="data:,">
+  <script src="static/js/auth.js" defer></script>
+  <script src="static/js/api.js" defer></script>
+  <script src="static/js/profile.js" defer></script>
 </head>
 
 <body>
@@ -22,6 +28,7 @@
       <nav class="site-nav">
         <div class="site-nav-primary">
           <a href="index.html">Home</a>
+          <a href="coming-soon.html">Coming Soon</a>
           <a href="profile.html" id="nav-profile">Profile</a>
         </div>
         <span id="user-span" class="site-nav-user"></span>
@@ -49,13 +56,26 @@
           <section class="admin-section">
             <h3>Halls</h3>
             <form id="form-hall" class="admin-form">
+              <input type="hidden" name="id">
               <input type="text" name="name" placeholder="Hall name" required />
               <input type="text" name="location" placeholder="Location" required />
+              <div class="form-row">
+                <select name="type" required>
+                  <option value="">Type</option>
+                  <option value="STANDARD">Standard</option>
+                  <option value="3D">3D</option>
+                  <option value="IMAX">IMAX</option>
+                  <option value="VIP">VIP</option>
+                </select>
+              </div>
               <div class="form-row">
                 <input type="number" name="total_rows" placeholder="Rows" min="1" required />
                 <input type="number" name="seats_per_row" placeholder="Seats per row" min="1" required />
               </div>
-              <button type="submit" class="btn btn-primary">Add Hall</button>
+              <div style="display: flex; gap: 10px;">
+                <button type="submit" class="btn btn-primary" style="flex:1">Add Hall</button>
+                <button type="button" class="btn btn-ghost cancel-btn" style="display:none; flex:1">Cancel</button>
+              </div>
             </form>
             <ul id="admin-halls" class="admin-list"></ul>
           </section>
@@ -63,14 +83,35 @@
           <section class="admin-section">
             <h3>Movies</h3>
             <form id="form-movie" class="admin-form">
+              <input type="hidden" name="id">
               <input type="text" name="name" placeholder="Title" required />
               <div class="form-row">
                 <input type="number" name="duration" placeholder="Duration (min)" min="1" required />
                 <input type="number" name="rating" placeholder="Rating" step="0.1" min="0" max="10" />
               </div>
               <textarea name="description" placeholder="Description" rows="2"></textarea>
-              <input type="text" name="poster_url" placeholder="Poster URL" />
-              <button type="submit" class="btn btn-primary">Add Movie</button>
+              <div class="form-row">
+                <input type="text" name="poster_url" placeholder="Poster URL" />
+                <input type="text" name="trailer_url" placeholder="Trailer URL (Youtube)" />
+              </div>
+              <div class="form-row">
+                <input type="number" name="age_limit" placeholder="Age Limit (e.g. 12)" min="0" />
+              </div>
+              <div class="form-group">
+                <label>Genres</label>
+                <div id="movie-genres-selection" class="admin-checkbox-grid">
+                  <!-- Loaded via JS -->
+                </div>
+              </div>
+              <div class="form-group">
+                <label class="admin-checkbox-label">
+                  <input type="checkbox" name="is_coming_soon"> Coming Soon (Hide from "Now Playing")
+                </label>
+              </div>
+              <div style="display: flex; gap: 10px;">
+                <button type="submit" class="btn btn-primary" style="flex:1">Add Movie</button>
+                <button type="button" class="btn btn-ghost cancel-btn" style="display:none; flex:1">Cancel</button>
+              </div>
             </form>
             <ul id="admin-movies" class="admin-list"></ul>
             <div id="movies-pagination" class="pagination-controls"
@@ -84,6 +125,7 @@
           <section class="admin-section">
             <h3>Sessions</h3>
             <form id="form-session" class="admin-form">
+              <input type="hidden" name="id">
               <select name="movie_id" required>
                 <option value="">Select Movie</option>
               </select>
@@ -94,7 +136,10 @@
                 <input type="datetime-local" name="start_time" required />
                 <input type="number" name="price" placeholder="Price (₸)" min="0" step="0.01" required />
               </div>
-              <button type="submit" class="btn btn-primary">Add Session</button>
+              <div style="display: flex; gap: 10px;">
+                <button type="submit" class="btn btn-primary" style="flex:1">Add Session</button>
+                <button type="button" class="btn btn-ghost cancel-btn" style="display:none; flex:1">Cancel</button>
+              </div>
             </form>
             <ul id="admin-sessions" class="admin-list"></ul>
             <div id="sessions-pagination" class="pagination-controls"
@@ -115,11 +160,25 @@
               <button type="button" id="next-bookings" class="btn btn-ghost btn-sm">Next</button>
             </div>
           </section>
+
+          <section class="admin-section full-width">
+            <h3>Manage Genres</h3>
+            <form id="form-genre" class="admin-form">
+              <input type="hidden" name="id">
+              <input type="text" name="name" placeholder="Genre Name" required />
+              <div style="display: flex; gap: 10px;">
+                <button type="submit" class="btn btn-primary" style="flex:1">Add Genre</button>
+                <button type="button" class="btn btn-ghost cancel-btn" style="display:none; flex:1">Cancel</button>
+              </div>
+            </form>
+            <ul id="admin-genres" class="admin-list"></ul>
+          </section>
         </div>
       </div>
     </div>
   </main>
 
+  <div id="toast-container" class="toast-container"></div>
   <script src="static/js/auth.js"></script>
   <script src="static/js/api.js"></script>
   <script src="static/js/admin.js"></script>

@@ -49,8 +49,18 @@
                 var genres = Array.isArray(movie.genres) ? movie.genres : (movie.genres ? String(movie.genres).split(',') : []);
                 document.getElementById('movie-meta-genres').textContent =
                     genres.length ? 'Genres: ' + genres.join(', ') : '';
+
+                var ageEl = document.getElementById('movie-age-limit');
+                if (ageEl) {
+                    ageEl.textContent = (movie.age_limit || 0) + '+';
+                }
+
                 document.getElementById('movie-description').textContent = movie.description || '';
-                document.getElementById('movie-rating').textContent = 'Rating: ' + (movie.rating != null ? movie.rating.toFixed(1) : '—') + '/10';
+
+                var ratEl = document.getElementById('movie-rating');
+                if (ratEl) {
+                    ratEl.textContent = 'Rating: ' + (movie.rating != null ? movie.rating.toFixed(1) : '—') + '/10';
+                }
                 var trailer = document.getElementById('movie-trailer');
                 if (movie.trailer_url) {
                     trailer.src = movie.trailer_url.replace('watch?v=', 'embed/');

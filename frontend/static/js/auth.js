@@ -168,7 +168,8 @@
     var currentCb = null;
 
     function showError(msg) {
-      errorEl.textContent = msg || '';
+      if (msg) console.error('Auth Error:', msg);
+      errorEl.textContent = typeof msg === 'string' ? msg : (msg.message || 'An unknown error occurred');
       errorEl.style.display = msg ? 'block' : 'none';
     }
 
@@ -276,9 +277,28 @@
     switchMode('login');
   }
 
-  if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', buildModal);
-  } else {
+  function highlightActiveLink() {
+    var path = window.location.pathname;
+    var filename = path.substring(path.lastIndexOf('/') + 1) || 'index.html';
+    var links = document.querySelectorAll('.site-nav a');
+    links.forEach(function (link) {
+      var href = link.getAttribute('href');
+      if (href === filename || (filename === 'index.html' && href === 'index.html')) {
+        link.classList.add('active');
+      } else {
+        link.classList.remove('active');
+      }
+    });
+  }
+
+  function init() {
     buildModal();
+    highlightActiveLink();
+  }
+
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', init);
+  } else {
+    init();
   }
 })();

@@ -28,12 +28,6 @@
     }
   }
 
-  function deriveCinemaType(hallName) {
-    var name = (hallName || '').toLowerCase();
-    if (name.indexOf('imax') !== -1) return 'IMAX';
-    if (name.indexOf('vip') !== -1) return 'VIP';
-    return 'Standard';
-  }
 
   function buildCinemasForMovie(movieId) {
     // Derive pseudo-cinemas from halls that have upcoming sessions for this movie.
@@ -63,7 +57,7 @@
             id: h.id,
             name: h.name || 'Mangekyo Cinema',
             photoUrl: '',
-            type: deriveCinemaType(h.name),
+            type: h.type || 'Standard',
             address: h.location || 'Main building',
             hallsSummary: 'Rows: ' + (h.total_rows || 0) + ', seats/row: ' + (h.seats_per_row || 0),
             upcomingSessionsCount: entry.sessions.length

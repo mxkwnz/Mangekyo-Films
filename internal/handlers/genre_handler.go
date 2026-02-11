@@ -41,6 +41,27 @@ func (h *GenreHandler) GetAllGenres(c *gin.Context) {
 	c.JSON(http.StatusOK, genres)
 }
 
+func (h *GenreHandler) UpdateGenre(c *gin.Context) {
+	id, err := primitive.ObjectIDFromHex(c.Param("id"))
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "invalid genre ID"})
+		return
+	}
+
+	var genre models.Genre
+	if err := c.ShouldBindJSON(&genre); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+
+	if err := h.genreService.UpdateGenre(c.Request.Context(), id, &genre); err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{"message": "genre updated successfully"})
+}
+
 func (h *GenreHandler) DeleteGenre(c *gin.Context) {
 	id, err := primitive.ObjectIDFromHex(c.Param("id"))
 	if err != nil {

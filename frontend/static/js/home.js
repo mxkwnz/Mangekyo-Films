@@ -58,6 +58,8 @@
     }
   }
 
+  var moviesWithSessions = new Set();
+
   function renderMovies(movies) {
     var grid = document.getElementById('movies-list');
     if (!grid) return;
@@ -76,12 +78,14 @@
         genres.some(function (g) {
           return String(g || '').trim() === genre;
         });
-      return matchTitle && matchGenre;
+      var isPlayingNow = !m.is_coming_soon;
+      var hasSessions = moviesWithSessions.has(m.id);
+      return matchTitle && matchGenre && isPlayingNow && hasSessions;
     });
 
     if (filtered.length === 0) {
       var empty = document.createElement('p');
-      empty.textContent = 'No movies found.';
+      empty.textContent = 'No movies currently playing.';
       grid.appendChild(empty);
       return;
     }
@@ -96,6 +100,19 @@
       var img = document.createElement('img');
       img.src = m.poster_url || '';
       img.alt = m.name || 'Movie poster';
+
+      // LCP Optimization:
+      // 1. High priority for first 2 items (likely above the fold)
+      // 2. Lazy loading for the rest
+      // 3. Explicit dimensions to prevent layout shift
+      if (filtered.indexOf(m) < 2) {
+        img.setAttribute('fetchpriority', 'high');
+      } else {
+        img.loading = 'lazy';
+      }
+      img.width = 300;
+      img.height = 450;
+
       media.appendChild(img);
 
       var body = document.createElement('div');
@@ -112,8 +129,8 @@
 
       var badgesRow = document.createElement('div');
       badgesRow.className = 'badge-row';
-      var genres = Array.isArray(m.genres) ? m.genres : (m.genres ? String(m.genres).split(',') : []);
-      genres.forEach(function (g) {
+      var movieGenres = Array.isArray(m.genres) ? m.genres : (m.genres ? String(m.genres).split(',') : []);
+      movieGenres.forEach(function (g) {
         var badge = document.createElement('span');
         badge.className = 'badge badge-genre';
         badge.textContent = String(g || '').trim();
@@ -142,10 +159,18 @@
       errorEl.style.display = 'none';
       errorEl.textContent = '';
     }
-    window.api
-      .fetchMovies()
-      .then(function (movies) {
+
+    Promise.all([
+      window.api.fetchMovies(),
+      window.api.fetchUpcomingMovieIDs()
+    ])
+      .then(function (results) {
+        var movies = results[0];
+        var sessionMovieIDs = results[1];
+
+        moviesWithSessions = new Set(sessionMovieIDs);
         allMovies = movies;
+
         ensureGenres(allMovies);
         renderMovies(allMovies);
       })

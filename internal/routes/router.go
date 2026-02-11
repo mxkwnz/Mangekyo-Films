@@ -55,6 +55,7 @@ func (r *Router) Setup() *gin.Engine {
 		public.GET("/movies", r.movieHandler.GetAllMovies)
 		public.GET("/movies/:id", r.movieHandler.GetMovie)
 		public.GET("/sessions/upcoming", r.sessionHandler.GetUpcomingSessions)
+		public.GET("/sessions/upcoming-movie-ids", r.sessionHandler.GetUpcomingMovieIDs)
 		public.GET("/sessions/movie/:movieId", r.sessionHandler.GetMovieSessions)
 		public.GET("/sessions/:id", r.sessionHandler.GetSession)
 		public.GET("/sessions/:id/booked-seats", r.bookingHandler.GetSessionBookedSeats)
@@ -101,6 +102,7 @@ func (r *Router) Setup() *gin.Engine {
 		admin.DELETE("/halls/:id", r.hallHandler.DeleteHall)
 
 		admin.POST("/sessions", r.sessionHandler.CreateSession)
+		admin.PUT("/sessions/:id", r.sessionHandler.UpdateSession)
 		admin.DELETE("/sessions/:id", r.sessionHandler.DeleteSession)
 
 		admin.GET("/bookings", r.bookingHandler.GetAllBookings)
@@ -109,6 +111,7 @@ func (r *Router) Setup() *gin.Engine {
 		admin.DELETE("/reviews/:id", r.reviewHandler.DeleteReview)
 
 		admin.POST("/genres", r.genreHandler.CreateGenre)
+		admin.PUT("/genres/:id", r.genreHandler.UpdateGenre)
 		admin.DELETE("/genres/:id", r.genreHandler.DeleteGenre)
 
 		admin.GET("/payments", r.paymentHandler.GetAllPayments)

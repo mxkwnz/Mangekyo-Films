@@ -51,6 +51,32 @@ func (r *GenreRepository) FindByID(ctx context.Context, id primitive.ObjectID) (
 	return &genre, nil
 }
 
+func (r *GenreRepository) FindByIDs(ctx context.Context, ids []primitive.ObjectID) ([]models.Genre, error) {
+	if len(ids) == 0 {
+		return []models.Genre{}, nil
+	}
+	cursor, err := r.collection.Find(ctx, bson.M{"_id": bson.M{"$in": ids}})
+	if err != nil {
+		return nil, err
+	}
+	defer cursor.Close(ctx)
+
+	var genres []models.Genre
+	if err = cursor.All(ctx, &genres); err != nil {
+		return nil, err
+	}
+	return genres, nil
+}
+
+func (r *GenreRepository) Update(ctx context.Context, id primitive.ObjectID, genre *models.Genre) error {
+	_, err := r.collection.UpdateOne(
+		ctx,
+		bson.M{"_id": id},
+		bson.M{"$set": genre},
+	)
+	return err
+}
+
 func (r *GenreRepository) Delete(ctx context.Context, id primitive.ObjectID) error {
 	_, err := r.collection.DeleteOne(ctx, bson.M{"_id": id})
 	return err

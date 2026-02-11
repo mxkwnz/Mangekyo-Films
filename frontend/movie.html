@@ -8,6 +8,7 @@
   <link rel="stylesheet" href="static/css/main.css">
   <link rel="stylesheet" href="static/css/auth-modal.css">
   <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600&display=swap" rel="stylesheet">
+  <link rel="icon" href="data:,">
 </head>
 
 <body>
@@ -22,6 +23,7 @@
       <nav class="site-nav">
         <div class="site-nav-primary">
           <a href="index.html">Home</a>
+          <a href="coming-soon.html">Coming Soon</a>
           <a href="profile.html" id="nav-profile" style="display:none;">Profile</a>
           <a href="admin.html" id="nav-admin" style="display:none;">Admin</a>
         </div>
@@ -44,7 +46,8 @@
           <div style="display:flex;gap:0.75rem;margin-bottom:1rem;flex-wrap:wrap;">
             <span id="movie-duration" class="badge"></span>
             <span id="movie-meta-genres" class="badge badge-genre"></span>
-            <span id="movie-rating" class="badge badge-age"></span>
+            <span id="movie-age-limit" class="badge badge-age"></span>
+            <span id="movie-rating" class="badge" style="background: var(--accent); color: white; border: none;"></span>
           </div>
           <p id="movie-description" style="line-height:1.6;color:var(--text-dim);font-size:1.05rem;"></p>
           <div id="movie-trailer-wrap" style="margin-top:1.5rem;">
@@ -94,6 +97,7 @@
       <p id="movie-error" class="error-msg" style="display:none;"></p>
     </div>
   </main>
+  <div id="toast-container" class="toast-container"></div>
   <script src="static/js/auth.js"></script>
   <script src="static/js/api.js"></script>
   <script src="static/js/movie.js"></script>
