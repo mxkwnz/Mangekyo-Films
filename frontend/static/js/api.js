@@ -13,6 +13,41 @@
     });
   }
 
+  window.showToast = function (msg, type = 'success') {
+    var container = document.getElementById('toast-container');
+    if (!container) {
+      // Fallback if container missing
+      if (type === 'error') console.error(msg);
+      else console.log(msg);
+      return;
+    }
+
+    var toast = document.createElement('div');
+    toast.className = `toast toast-${type}`;
+    var icon = type === 'success' ? '✓' : '✕';
+
+    toast.innerHTML = `
+        <div class="toast-content">
+            <strong>${icon} ${type === 'success' ? 'Success' : 'Error'}</strong>
+            <div>${msg}</div>
+        </div>
+        <button class="toast-close">&times;</button>
+    `;
+
+    container.appendChild(toast);
+
+    var closeBtn = toast.querySelector('.toast-close');
+    var removeToast = function () {
+      toast.classList.add('removing');
+      setTimeout(function () {
+        if (toast.parentNode) toast.parentNode.removeChild(toast);
+      }, 300);
+    };
+
+    closeBtn.onclick = removeToast;
+    setTimeout(removeToast, 5000);
+  };
+
   function authHeaders() {
     var u = window.auth && window.auth.getUser ? window.auth.getUser() : null;
     if (u && u.token) {
@@ -35,12 +70,20 @@
       method: method,
       headers: headers,
       body: body
-    }).then(function (response) {
-      if (response.status === 401) {
-
-      }
-      return withJson(response);
-    });
+    })
+      .then(function (response) {
+        if (response.status === 401) {
+          // Could handle session expiry here
+        }
+        return withJson(response);
+      })
+      .catch(function (err) {
+        return {
+          ok: false,
+          status: 0,
+          data: { error: 'Connection error: ' + (err.message || 'Server unreachable') }
+        };
+      });
   }
 
   window.api = {
@@ -68,6 +111,12 @@
     fetchUpcomingSessions: function () {
       return request('GET', '/sessions/upcoming').then(function (res) {
         if (!res.ok) throw new Error(res.data.error || 'Failed to load sessions');
+        return Array.isArray(res.data) ? res.data : [];
+      });
+    },
+    fetchUpcomingMovieIDs: function () {
+      return request('GET', '/sessions/upcoming-movie-ids').then(function (res) {
+        if (!res.ok) throw new Error(res.data.error || 'Failed to load session IDs');
         return Array.isArray(res.data) ? res.data : [];
       });
     },
@@ -115,10 +164,7 @@
           return entries.map(function (entry) {
             var h = entry.hall || {};
             var name = (h.name || 'Mangekyo Cinema');
-            var lower = name.toLowerCase();
-            var type = 'Standard';
-            if (lower.indexOf('imax') !== -1) type = 'IMAX';
-            else if (lower.indexOf('vip') !== -1) type = 'VIP';
+            var type = h.type || 'Standard';
             return {
               id: h.id,
               name: name,
@@ -273,6 +319,12 @@
         return res.data;
       });
     },
+    adminUpdateHall: function (id, payload) {
+      return request('PUT', '/admin/halls/' + encodeURIComponent(id), { headers: authHeaders(), body: payload }).then(function (res) {
+        if (!res.ok) throw new Error(res.data.error || 'Failed to update hall');
+        return res.data;
+      });
+    },
     adminCreateMovie: function (payload) {
       return request('POST', '/admin/movies', { headers: authHeaders(), body: payload }).then(function (res) {
         if (!res.ok) throw new Error(res.data.error || 'Failed to create movie');
@@ -285,9 +337,21 @@
         return res.data;
       });
     },
+    adminUpdateMovie: function (id, payload) {
+      return request('PUT', '/admin/movies/' + encodeURIComponent(id), { headers: authHeaders(), body: payload }).then(function (res) {
+        if (!res.ok) throw new Error(res.data.error || 'Failed to update movie');
+        return res.data;
+      });
+    },
     adminCreateSession: function (payload) {
       return request('POST', '/admin/sessions', { headers: authHeaders(), body: payload }).then(function (res) {
         if (!res.ok) throw new Error(res.data.error || 'Failed to create session');
+        return res.data;
+      });
+    },
+    adminUpdateSession: function (id, payload) {
+      return request('PUT', '/admin/sessions/' + encodeURIComponent(id), { headers: authHeaders(), body: payload }).then(function (res) {
+        if (!res.ok) throw new Error(res.data.error || 'Failed to update session');
         return res.data;
       });
     },
@@ -325,6 +389,38 @@
       return request('GET', '/admin/bookings', { headers: authHeaders() }).then(function (res) {
         if (!res.ok) throw new Error(res.data.error || 'Failed to load bookings');
         return Array.isArray(res.data) ? res.data : [];
+      });
+    },
+    adminFetchGenres: function () {
+      return request('GET', '/genres').then(function (res) {
+        if (!res.ok) throw new Error(res.data.error || 'Failed to load genres');
+        return Array.isArray(res.data) ? res.data : [];
+      });
+    },
+    adminCreateGenre: function (payload) {
+      return request('POST', '/admin/genres', {
+        headers: authHeaders(),
+        body: payload
+      }).then(function (res) {
+        if (!res.ok) throw new Error(res.data.error || 'Failed to create genre');
+        return res.data;
+      });
+    },
+    adminUpdateGenre: function (id, payload) {
+      return request('PUT', '/admin/genres/' + encodeURIComponent(id), {
+        headers: authHeaders(),
+        body: payload
+      }).then(function (res) {
+        if (!res.ok) throw new Error(res.data.error || 'Failed to update genre');
+        return res.data;
+      });
+    },
+    adminDeleteGenre: function (id) {
+      return request('DELETE', '/admin/genres/' + encodeURIComponent(id), {
+        headers: authHeaders()
+      }).then(function (res) {
+        if (!res.ok) throw new Error(res.data.error || 'Failed to delete genre');
+        return res.data;
       });
     }
   };

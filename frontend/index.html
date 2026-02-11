@@ -5,9 +5,17 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Cinema — Home</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="preload" href="/api/movies" as="fetch" crossorigin>
+  <link rel="preload" href="/api/sessions/upcoming-movie-ids" as="fetch" crossorigin>
   <link rel="stylesheet" href="static/css/main.css">
   <link rel="stylesheet" href="static/css/auth-modal.css">
   <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600&display=swap" rel="stylesheet">
+  <link rel="icon" href="data:,">
+  <script src="static/js/auth.js" defer></script>
+  <script src="static/js/api.js" defer></script>
+  <script src="static/js/home.js" defer></script>
 </head>
 
 <body>
@@ -22,6 +30,7 @@
       <nav class="site-nav">
         <div class="site-nav-primary">
           <a href="index.html">Home</a>
+          <a href="coming-soon.html">Coming Soon</a>
           <a href="profile.html" id="nav-profile" style="display:none;">Profile</a>
           <a href="admin.html" id="nav-admin" style="display:none;">Admin</a>
         </div>
@@ -50,10 +59,10 @@
       <section id="movies-list" class="card-grid" aria-live="polite"></section>
       <p id="movies-error" class="error-msg" style="display:none;"></p>
     </div>
-  </main>
-  <script src="static/js/auth.js"></script>
-  <script src="static/js/api.js"></script>
-  <script src="static/js/home.js"></script>
+    <div id="toast-container" class="toast-container"></div>
+    <script src="static/js/auth.js"></script>
+    <script src="static/js/api.js"></script>
+    <script src="static/js/home.js"></script>
 </body>
 
 </html>

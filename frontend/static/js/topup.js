@@ -17,6 +17,9 @@
     }
 
     function showError(msg, isSuccess) {
+        if (msg) {
+            window.showToast(msg, isSuccess ? 'success' : 'error');
+        }
         var el = document.getElementById('topup-error');
         if (!el) return;
         el.textContent = msg || '';

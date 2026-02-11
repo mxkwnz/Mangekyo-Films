@@ -8,6 +8,7 @@ import (
 	"time"
 
 	"go.mongodb.org/mongo-driver/bson/primitive"
+	"golang.org/x/crypto/bcrypt"
 )
 
 type PaymentCardService struct {
@@ -32,12 +33,18 @@ func (s *PaymentCardService) CreateCard(ctx context.Context, userID primitive.Ob
 		return nil, errors.New("user not found")
 	}
 
+	// CVV Hashing
+	cvvHash, err := bcrypt.GenerateFromPassword([]byte(req.CVV), bcrypt.DefaultCost)
+	if err != nil {
+		return nil, errors.New("failed to process card security")
+	}
+
 	card := &models.PaymentCard{
 		UserID:         userID,
 		CardHolderName: req.CardHolderName,
 		CardNumber:     req.CardNumber,
 		ExpiryDate:     req.ExpiryDate,
-		CVV:            req.CVV,
+		CVVHash:        string(cvvHash),
 		CreatedAt:      time.Now(),
 	}
 

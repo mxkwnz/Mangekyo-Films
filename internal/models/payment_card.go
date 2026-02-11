@@ -15,7 +15,7 @@ type PaymentCard struct {
 	CardHolderName string             `json:"card_holder_name" bson:"card_holder_name"`
 	CardNumber     string             `json:"card_number" bson:"card_number"`
 	ExpiryDate     string             `json:"expiry_date" bson:"expiry_date"`
-	CVV            string             `json:"cvv" bson:"cvv"`
+	CVVHash        string             `json:"-" bson:"cvv_hash"`
 	CreatedAt      time.Time          `json:"created_at" bson:"created_at"`
 }
 

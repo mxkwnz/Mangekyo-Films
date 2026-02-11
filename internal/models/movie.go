@@ -7,17 +7,19 @@ import (
 )
 
 type Movie struct {
-	ID          primitive.ObjectID   `json:"id" bson:"_id,omitempty"`
-	Name        string               `json:"name" bson:"name"`
-	AgeRating   string               `json:"age_rating" bson:"age_rating"`
-	Duration    int                  `json:"duration" bson:"duration"`
-	Description string               `json:"description" bson:"description"`
-	PosterURL   string               `json:"poster_url" bson:"poster_url"`
-	TrailerURL  string               `json:"trailer_url" bson:"trailer_url"`
-	AgeLimit    int                  `json:"age_limit" bson:"age_limit"`
-	Rating      float64              `json:"rating" bson:"rating"`
-	Genres      []primitive.ObjectID `json:"genres" bson:"genres"`
-	CreatedAt   time.Time            `json:"created_at" bson:"created_at"`
+	ID           primitive.ObjectID   `json:"id" bson:"_id,omitempty"`
+	Name         string               `json:"name" bson:"name"`
+	AgeRating    string               `json:"age_rating" bson:"age_rating"`
+	Duration     int                  `json:"duration" bson:"duration"`
+	Description  string               `json:"description" bson:"description"`
+	PosterURL    string               `json:"poster_url" bson:"poster_url"`
+	TrailerURL   string               `json:"trailer_url" bson:"trailer_url"`
+	AgeLimit     int                  `json:"age_limit" bson:"age_limit"`
+	Rating       float64              `json:"rating" bson:"rating"`
+	Genres       []primitive.ObjectID `json:"genre_ids" bson:"genres"`
+	GenreNames   []string             `json:"genres" bson:"-"`
+	IsComingSoon bool                 `json:"is_coming_soon" bson:"is_coming_soon"`
+	CreatedAt    time.Time            `json:"created_at" bson:"created_at"`
 }
 
 type Genre struct {
