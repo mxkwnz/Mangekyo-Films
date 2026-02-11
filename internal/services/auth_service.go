@@ -14,6 +14,12 @@ import (
 	"golang.org/x/crypto/bcrypt"
 )
 
+var (
+	ErrUserAlreadyExists  = errors.New("user with this email already exists")
+	ErrInvalidCredentials = errors.New("invalid credentials")
+	ErrUserNotFound       = errors.New("user not found")
+)
+
 type AuthService struct {
 	userRepo   *repositories.UserRepository
 	reviewRepo *repositories.ReviewRepository
@@ -29,7 +35,7 @@ func NewAuthService(userRepo *repositories.UserRepository, reviewRepo *repositor
 func (s *AuthService) Register(ctx context.Context, req models.UserRegistration) (*models.User, string, error) {
 	existing, _ := s.userRepo.FindByEmail(ctx, req.Email)
 	if existing != nil {
-		return nil, "", errors.New("user with this email already exists")
+		return nil, "", ErrUserAlreadyExists
 	}
 
 	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(req.Password), bcrypt.DefaultCost)
@@ -44,7 +50,7 @@ func (s *AuthService) Register(ctx context.Context, req models.UserRegistration)
 		PhoneNumber:  req.PhoneNumber,
 		PasswordHash: string(hashedPassword),
 		Role:         models.RoleUser,
-		Balance:      1000.0,
+		Balance:      0.0,
 		CreatedAt:    time.Now(),
 	}
 
@@ -64,12 +70,12 @@ func (s *AuthService) Register(ctx context.Context, req models.UserRegistration)
 func (s *AuthService) Login(ctx context.Context, req models.UserLogin) (*models.User, string, error) {
 	user, err := s.userRepo.FindByEmail(ctx, req.Email)
 	if err != nil {
-		return nil, "", errors.New("invalid credentials")
+		return nil, "", ErrInvalidCredentials
 	}
 
 	err = bcrypt.CompareHashAndPassword([]byte(user.PasswordHash), []byte(req.Password))
 	if err != nil {
-		return nil, "", errors.New("invalid credentials")
+		return nil, "", ErrInvalidCredentials
 	}
 
 	token, err := s.GenerateToken(user)
@@ -102,7 +108,7 @@ func (s *AuthService) GetUserByID(ctx context.Context, id primitive.ObjectID) (*
 func (s *AuthService) UpdateProfile(ctx context.Context, userID primitive.ObjectID, firstName, lastName, email, phoneNumber string) error {
 	user, err := s.userRepo.FindByID(ctx, userID)
 	if err != nil {
-		return errors.New("user not found")
+		return ErrUserNotFound
 	}
 
 	if user.Email != email {

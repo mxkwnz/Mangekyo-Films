@@ -91,7 +91,7 @@
 }
 
 .auth-form input {
-  padding: 0.8rem 1.2rem;
+  padding: 1rem 1.2rem;
   border: 1px solid var(--border);
   border-radius: 12px;
   background: var(--input-bg);
@@ -199,4 +199,98 @@
 
 .auth-modal .auth-modal-wrap {
   position: relative;
+}
+
+.phone-input-wrapper {
+  display: flex;
+  align-items: center;
+  background: var(--input-bg);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  transition: all 0.2s;
+  position: relative;
+}
+
+.phone-input-wrapper:focus-within {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 4px rgba(225, 29, 72, 0.15);
+}
+
+.phone-prefix {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 1rem 0.75rem 1rem 1.2rem;
+  border-right: 1px solid var(--border);
+  background: rgba(255, 255, 255, 0.03);
+  color: #fff;
+  font-size: 1rem;
+  user-select: none;
+  cursor: pointer;
+  position: relative;
+  min-height: 52px;
+}
+
+.country-dropdown {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  width: 220px;
+  background: #1e293b;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.5);
+  display: none;
+  z-index: 100;
+  margin-top: 0.5rem;
+  padding: 0.5rem;
+}
+
+.country-dropdown.active {
+  display: block;
+}
+
+.country-item {
+  padding: 0.6rem 0.75rem;
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  border-radius: 8px;
+  transition: all 0.2s;
+  font-size: 0.9rem;
+}
+
+.country-item:hover {
+  background: var(--accent);
+  color: #fff;
+}
+
+.country-item img {
+  width: 20px;
+  height: auto;
+  border-radius: 2px;
+}
+
+.phone-prefix img {
+  width: 20px;
+  height: auto;
+  border-radius: 2px;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
+}
+
+.phone-prefix .prefix-arrow {
+  width: 0;
+  height: 0;
+  border-left: 4px solid transparent;
+  border-right: 4px solid transparent;
+  border-top: 5px solid var(--text-dim);
+  margin-left: 2px;
+}
+
+.phone-input-wrapper input {
+  flex: 1;
+  border: none !important;
+  background: transparent !important;
+  box-shadow: none !important;
+  padding-left: 0.75rem !important;
 }

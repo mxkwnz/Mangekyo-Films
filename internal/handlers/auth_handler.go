@@ -3,9 +3,11 @@ package handlers
 import (
 	"cinema-system/internal/models"
 	"cinema-system/internal/services"
+	"errors"
 	"net/http"
 
 	"github.com/gin-gonic/gin"
+	go_playground_validator "github.com/go-playground/validator/v10"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 )
 
@@ -20,13 +22,17 @@ func NewAuthHandler(authService *services.AuthService) *AuthHandler {
 func (h *AuthHandler) Register(c *gin.Context) {
 	var req models.UserRegistration
 	if err := c.ShouldBindJSON(&req); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		c.JSON(http.StatusBadRequest, gin.H{"error": formatValidationError(err)})
 		return
 	}
 
 	user, token, err := h.authService.Register(c.Request.Context(), req)
 	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		if errors.Is(err, services.ErrUserAlreadyExists) {
+			c.JSON(http.StatusConflict, gin.H{"error": err.Error()})
+			return
+		}
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}
 
@@ -40,13 +46,17 @@ func (h *AuthHandler) Register(c *gin.Context) {
 func (h *AuthHandler) Login(c *gin.Context) {
 	var req models.UserLogin
 	if err := c.ShouldBindJSON(&req); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		c.JSON(http.StatusBadRequest, gin.H{"error": formatValidationError(err)})
 		return
 	}
 
 	user, token, err := h.authService.Login(c.Request.Context(), req)
 	if err != nil {
-		c.JSON(http.StatusUnauthorized, gin.H{"error": err.Error()})
+		if errors.Is(err, services.ErrInvalidCredentials) {
+			c.JSON(http.StatusUnauthorized, gin.H{"error": err.Error()})
+			return
+		}
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}
 
@@ -55,6 +65,30 @@ func (h *AuthHandler) Login(c *gin.Context) {
 		Token:   token,
 		Message: "login successful",
 	})
+}
+
+func formatValidationError(err error) string {
+	var ve go_playground_validator.ValidationErrors
+	if errors.As(err, &ve) {
+		for _, fe := range ve {
+			switch fe.Field() {
+			case "Email":
+				return "Please enter a valid email address"
+			case "Password":
+				if fe.Tag() == "min" {
+					return "Password must be at least 6 characters long"
+				}
+				return "Password is required"
+			case "FirstName":
+				return "First name must be at least 2 characters long"
+			case "LastName":
+				return "Last name must be at least 2 characters long"
+			case "PhoneNumber":
+				return "Phone number is required"
+			}
+		}
+	}
+	return "Invalid input data"
 }
 
 func (h *AuthHandler) GetMe(c *gin.Context) {

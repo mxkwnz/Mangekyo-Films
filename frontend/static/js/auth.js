@@ -109,12 +109,59 @@
     row1.appendChild(first);
     row1.appendChild(last);
     registerFields.appendChild(row1);
+    var phoneWrapper = document.createElement('div');
+    phoneWrapper.className = 'phone-input-wrapper';
+
+    var phonePrefix = document.createElement('div');
+    phonePrefix.className = 'phone-prefix';
+    phonePrefix.id = 'phone-country-selector';
+    phonePrefix.innerHTML = '<img src="https://flagcdn.com/w20/us.png" alt="Flag"> <span class="prefix-text">+1</span> <div class="prefix-arrow"></div>';
+
+    var countryDropdown = document.createElement('div');
+    countryDropdown.className = 'country-dropdown';
+    var countries = [
+      { code: 'us', prefix: '+1', name: 'USA' },
+      { code: 'kz', prefix: '+7', name: 'Kazakhstan' },
+      { code: 'ru', prefix: '+7', name: 'Russia' },
+      { code: 'tr', prefix: '+90', name: 'Turkey' },
+      { code: 'ae', prefix: '+971', name: 'UAE' }
+    ];
+
+    countries.forEach(function (c) {
+      var item = document.createElement('div');
+      item.className = 'country-item';
+      item.innerHTML = `<img src="https://flagcdn.com/w20/${c.code}.png"> ${c.name} (${c.prefix})`;
+      item.onclick = function (e) {
+        e.stopPropagation();
+        phonePrefix.querySelector('img').src = `https://flagcdn.com/w20/${c.code}.png`;
+        phonePrefix.querySelector('.prefix-text').textContent = c.prefix;
+        countryDropdown.classList.remove('active');
+      };
+      countryDropdown.appendChild(item);
+    });
+
+    phonePrefix.appendChild(countryDropdown);
+    phonePrefix.onclick = function (e) {
+      e.stopPropagation();
+      countryDropdown.classList.toggle('active');
+    };
+
+    document.addEventListener('click', function () {
+      countryDropdown.classList.remove('active');
+    });
+
     var phone = document.createElement('input');
     phone.type = 'tel';
     phone.name = 'phone_number';
-    phone.placeholder = 'Phone';
+    phone.placeholder = 'Phone number';
     phone.required = true;
-    registerFields.appendChild(phone);
+    phone.oninput = function (e) {
+      this.value = this.value.replace(/[^0-9]/g, '');
+    };
+
+    phoneWrapper.appendChild(phonePrefix);
+    phoneWrapper.appendChild(phone);
+    registerFields.appendChild(phoneWrapper);
 
     var email = document.createElement('input');
     email.type = 'email';
@@ -226,7 +273,8 @@
       if (currentMode === 'register') {
         payload.first_name = form.first_name.value.trim();
         payload.last_name = form.last_name.value.trim();
-        payload.phone_number = form.phone_number.value.trim();
+        var prefix = document.querySelector('.prefix-text').textContent;
+        payload.phone_number = prefix + ' ' + form.phone_number.value.trim();
       }
 
       var apiFn = null;
