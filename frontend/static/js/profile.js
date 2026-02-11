@@ -69,7 +69,8 @@
         if (!u) return;
         document.getElementById('profile-info').innerHTML =
             `<strong>Name:</strong> ${u.first_name || ''} ${u.last_name || ''}<br>` +
-            `<strong>Email:</strong> ${u.email || ''}`;
+            `<strong>Email:</strong> ${u.email || ''}<br>` +
+            `<strong>Phone:</strong> ${u.phone_number || 'Not provided'}`;
 
         var adminLink = document.getElementById('profile-admin-link');
         if (adminLink) adminLink.style.display = (u.role === 'ADMIN') ? 'inline-block' : 'none';
