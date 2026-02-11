@@ -33,7 +33,6 @@ func (s *PaymentCardService) CreateCard(ctx context.Context, userID primitive.Ob
 		return nil, errors.New("user not found")
 	}
 
-	// CVV Hashing
 	cvvHash, err := bcrypt.GenerateFromPassword([]byte(req.CVV), bcrypt.DefaultCost)
 	if err != nil {
 		return nil, errors.New("failed to process card security")

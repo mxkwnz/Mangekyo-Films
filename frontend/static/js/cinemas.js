@@ -30,7 +30,6 @@
 
 
   function buildCinemasForMovie(movieId) {
-    // Derive pseudo-cinemas from halls that have upcoming sessions for this movie.
     return window.api.fetchMovieSessions(movieId).then(function (sessions) {
       var byHall = {};
       sessions.forEach(function (s) {
@@ -48,10 +47,12 @@
           return window.api.fetchHall(id).then(function (hall) {
             byHall[id].hall = hall;
             return byHall[id];
+          }).catch(function (e) {
+            return null;
           });
         })
       ).then(function (list) {
-        return list.map(function (entry) {
+        var cinemas = list.filter(Boolean).map(function (entry) {
           var h = entry.hall || {};
           return {
             id: h.id,
@@ -63,6 +64,7 @@
             upcomingSessionsCount: entry.sessions.length
           };
         });
+        return cinemas;
       });
     });
   }

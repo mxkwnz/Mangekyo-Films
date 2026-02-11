@@ -16,7 +16,6 @@
   window.showToast = function (msg, type = 'success') {
     var container = document.getElementById('toast-container');
     if (!container) {
-      // Fallback if container missing
       if (type === 'error') console.error(msg);
       else console.log(msg);
       return;
@@ -73,7 +72,6 @@
     })
       .then(function (response) {
         if (response.status === 401) {
-          // Could handle session expiry here
         }
         return withJson(response);
       })

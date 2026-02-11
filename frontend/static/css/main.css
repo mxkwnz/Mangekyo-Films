@@ -601,7 +601,7 @@ textarea:focus {
   color: var(--text-dim);
 }
 
-/* Toast System */
+
 .toast-container {
   position: fixed;
   bottom: 2rem;

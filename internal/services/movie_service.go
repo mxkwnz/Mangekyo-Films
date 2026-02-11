@@ -31,11 +31,7 @@ func (s *MovieService) CreateMovie(ctx context.Context, movie *models.Movie) err
 	movie.CreatedAt = time.Now()
 	movie.Rating = 0.0
 
-	// Temporarily store genres to handle them after movie creation
 	genreIDs := movie.Genres
-	movie.Genres = []primitive.ObjectID{} // clear primarily if we want to rely solely on join table, but we can keep both for read optimization.
-	// However, if we move to join table strict, we should probably only populate this on read.
-	// For now, let's keep array for read performance but ALSO populate join table as requested.
 	movie.Genres = genreIDs
 
 	if err := s.movieRepo.Create(ctx, movie); err != nil {
@@ -44,7 +40,6 @@ func (s *MovieService) CreateMovie(ctx context.Context, movie *models.Movie) err
 
 	for _, genreID := range genreIDs {
 		if err := s.movieGenreService.AddGenreToMovie(ctx, movie.ID, genreID); err != nil {
-			// In real app, rollback tx
 			return err
 		}
 	}
@@ -57,7 +52,6 @@ func (s *MovieService) GetAllMovies(ctx context.Context) ([]models.Movie, error)
 		return nil, err
 	}
 
-	// Batch fetch genres to avoid N+1 queries
 	genreIDMap := make(map[primitive.ObjectID]bool)
 	for _, m := range movies {
 		for _, gid := range m.Genres {
@@ -123,13 +117,10 @@ func (s *MovieService) populateGenreNames(ctx context.Context, movie *models.Mov
 }
 
 func (s *MovieService) UpdateMovie(ctx context.Context, id primitive.ObjectID, movie *models.Movie) error {
-	// First update the movie document
 	if err := s.movieRepo.Update(ctx, id, movie); err != nil {
 		return err
 	}
 
-	// Update relationships
-	// Simplest strategy: remove all existing and add new
 	if err := s.movieGenreService.RemoveGenresFromMovie(ctx, id); err != nil {
 		return err
 	}

@@ -46,7 +46,6 @@ func (s *SessionService) CreateSession(ctx context.Context, session *models.Sess
 		return errors.New("Hall does not exist")
 	}
 
-	// Allow 5 minutes buffer for minor clock drift
 	if session.StartTime.Before(time.Now().Add(-5 * time.Minute)) {
 		return errors.New("Cannot schedule sessions in the past")
 	}
@@ -98,11 +97,7 @@ func (s *SessionService) UpdateSession(ctx context.Context, id primitive.ObjectI
 		return errors.New("Hall does not exist")
 	}
 
-	// We allow updating sessions in the past if they were already there, but let's keep some sanity check.
-	// Usually, you only update future sessions.
 	if session.StartTime.Before(time.Now().Add(-5 * time.Minute)) {
-		// If it's a minor update and start time hasn't changed much, maybe it's fine.
-		// For simplicity, let's keep the past check.
 		return errors.New("Cannot schedule sessions in the past")
 	}
 
@@ -113,7 +108,6 @@ func (s *SessionService) UpdateSession(ctx context.Context, id primitive.ObjectI
 		return err
 	}
 
-	// Filter out the current session from overlap check
 	for _, o := range overlapping {
 		if o.ID != id {
 			return errors.New("The selected hall is already occupied during this time period")
