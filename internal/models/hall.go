@@ -5,10 +5,10 @@ import "go.mongodb.org/mongo-driver/bson/primitive"
 type HallType string
 
 const (
-	HallType3D     HallType = "3D"
-	HallTypeVIP    HallType = "VIP"
-	HallTypeIMAX   HallType = "IMAX"
-	HallTypeCommon HallType = "COMMON"
+	HallType3D       HallType = "3D"
+	HallTypeVIP      HallType = "VIP"
+	HallTypeIMAX     HallType = "IMAX"
+	HallTypeStandard HallType = "STANDARD"
 )
 
 type Hall struct {

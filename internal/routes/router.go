@@ -111,7 +111,6 @@ func (r *Router) Setup() *gin.Engine {
 		admin.POST("/genres", r.genreHandler.CreateGenre)
 		admin.DELETE("/genres/:id", r.genreHandler.DeleteGenre)
 
-		// Admin payment routes
 		admin.GET("/payments", r.paymentHandler.GetAllPayments)
 		admin.GET("/payments/user/:userId", r.paymentHandler.GetUserPaymentsByID)
 		admin.GET("/payment-cards/user/:userId", r.paymentCardHandler.GetUserCards)
