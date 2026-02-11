@@ -312,16 +312,16 @@ curl -X POST http://localhost:8080/api/auth/register \
 Response:
 ```json
 {
-  "user": {
-    "id": "...",
-    "first_name": "John",
-    "last_name": "Doe",
-    "email": "john@example.com",
-    "role": "USER",
-    "balance": 1000.0
-  },
-  "token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...",
-  "message": "registration successful"
+   "user": {
+      "id": "...",
+      "first_name": "John",
+      "last_name": "Doe",
+      "email": "john@example.com",
+      "role": "USER",
+      "balance": 1000.0
+   },
+   "token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...",
+   "message": "registration successful"
 }
 ```
 
@@ -363,73 +363,73 @@ For detailed API documentation with all endpoints, request/response formats, and
 ### User
 ```go
 type User struct {
-    ID           ObjectID   // MongoDB ID
-    FirstName    string     // User's first name
-    LastName     string     // User's last name
-    Email        string     // Unique email
-    PhoneNumber  string     // Contact number
-    PasswordHash string     // bcrypt hashed password
-    Role         Role       // GUEST, USER, ADMIN
-    Balance      float64    // Account balance (default: 1000.0)
-    CreatedAt    time.Time  // Registration date
+ID           ObjectID   // MongoDB ID
+FirstName    string     // User's first name
+LastName     string     // User's last name
+Email        string     // Unique email
+PhoneNumber  string     // Contact number
+PasswordHash string     // bcrypt hashed password
+Role         Role       // GUEST, USER, ADMIN
+Balance      float64    // Account balance (default: 1000.0)
+CreatedAt    time.Time  // Registration date
 }
 ```
 
 ### Movie
 ```go
 type Movie struct {
-    ID           ObjectID     // MongoDB ID
-    Name         string       // Movie title
-    AgeRating    string       // G, PG, PG-13, R, etc.
-    Duration     int          // Duration in minutes
-    Description  string       // Movie description
-    PosterURL    string       // Poster image URL
-    TrailerURL   string       // Trailer video URL
-    AgeLimit     int          // Minimum age
-    Rating       float64      // Average rating (0-10)
-    Genres       []ObjectID   // Genre IDs
-    IsComingSoon bool         // Release status
-    CreatedAt    time.Time    // Added date
+ID           ObjectID     // MongoDB ID
+Name         string       // Movie title
+AgeRating    string       // G, PG, PG-13, R, etc.
+Duration     int          // Duration in minutes
+Description  string       // Movie description
+PosterURL    string       // Poster image URL
+TrailerURL   string       // Trailer video URL
+AgeLimit     int          // Minimum age
+Rating       float64      // Average rating (0-10)
+Genres       []ObjectID   // Genre IDs
+IsComingSoon bool         // Release status
+CreatedAt    time.Time    // Added date
 }
 ```
 
 ### Session
 ```go
 type Session struct {
-    ID        ObjectID   // MongoDB ID
-    MovieID   ObjectID   // Related movie
-    HallID    ObjectID   // Cinema hall
-    StartTime time.Time  // Session start
-    EndTime   time.Time  // Auto-calculated end
-    Price     float64    // Base ticket price
+ID        ObjectID   // MongoDB ID
+MovieID   ObjectID   // Related movie
+HallID    ObjectID   // Cinema hall
+StartTime time.Time  // Session start
+EndTime   time.Time  // Auto-calculated end
+Price     float64    // Base ticket price
 }
 ```
 
 ### Ticket
 ```go
 type Ticket struct {
-    ID         ObjectID     // MongoDB ID
-    UserID     ObjectID     // Ticket owner
-    SessionID  ObjectID     // Related session
-    PaymentID  ObjectID     // Payment record
-    RowNumber  int          // Seat row
-    SeatNumber int          // Seat number
-    Type       TicketType   // ADULT, STUDENT, KID, PENSION
-    Price      float64      // Final price (after discount)
-    Status     TicketStatus // BOOKED, PAID, CANCELLED
-    CreatedAt  time.Time    // Booking time
+ID         ObjectID     // MongoDB ID
+UserID     ObjectID     // Ticket owner
+SessionID  ObjectID     // Related session
+PaymentID  ObjectID     // Payment record
+RowNumber  int          // Seat row
+SeatNumber int          // Seat number
+Type       TicketType   // ADULT, STUDENT, KID, PENSION
+Price      float64      // Final price (after discount)
+Status     TicketStatus // BOOKED, PAID, CANCELLED
+CreatedAt  time.Time    // Booking time
 }
 ```
 
 ### Hall
 ```go
 type Hall struct {
-    ID          ObjectID // MongoDB ID
-    Name        string   // Hall name
-    Type        HallType // STANDARD, VIP, IMAX, 3D
-    Location    string   // Physical location
-    TotalRows   int      // Number of rows
-    SeatsPerRow int      // Seats in each row
+ID          ObjectID // MongoDB ID
+Name        string   // Hall name
+Type        HallType // STANDARD, VIP, IMAX, 3D
+Location    string   // Physical location
+TotalRows   int      // Number of rows
+SeatsPerRow int      // Seats in each row
 }
 ```
 
@@ -522,9 +522,9 @@ go run main.go
 curl -X POST http://localhost:8080/api/auth/register \
   -H "Content-Type: application/json" \
   -d '{
-    "first_name": "John",
-    "last_name": "Doe",
-    "email": "john@example.com",
+    "first_name": "User",
+    "last_name": "Resu",
+    "email": "user@example.com",
     "phone_number": "+77771234567",
     "password": "password123"
   }'
@@ -535,7 +535,7 @@ curl -X POST http://localhost:8080/api/auth/register \
 curl -X POST http://localhost:8080/api/auth/login \
   -H "Content-Type: application/json" \
   -d '{
-    "email": "john@example.com",
+    "email": "user@example.com",
     "password": "password123"
   }'
 ```
@@ -729,18 +729,9 @@ SOFTWARE.
 ## Contact
 
 **Team Members**
-- Mukhammedali Kalen - Project Lead
+- Mukhammedali Kalen - Project Lead, Backend Developer
 - Shyngys Abdullaev - Backend Developer
 - Alikhan Orynbasarov - Backend Developer
-
-**Institution**
-Astana IT University
-Nur-Sultan, Kazakhstan
-2026
-
-**Support**
-- Issues: GitHub Issues
-- Documentation: API_DOCUMENTATION.md
 
 ---
 
