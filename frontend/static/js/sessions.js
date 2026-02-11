@@ -30,9 +30,10 @@
   function buildDateRange(days) {
     var out = [];
     var now = new Date();
+    var today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
     for (var i = 0; i < days; i++) {
-      var d = new Date(now);
-      d.setDate(now.getDate() + i);
+      var d = new Date(today);
+      d.setDate(today.getDate() + i);
       out.push(d);
     }
     return out;
@@ -71,14 +72,22 @@
     wrap.appendChild(info);
   }
 
-  function renderDateSelector(dates, activeDate, onSelect) {
+  function renderDateSelector(dates, activeDate, sessions, onSelect) {
     var bar = document.getElementById('date-selector');
     if (!bar) return;
     bar.innerHTML = '';
+    var now = new Date();
     dates.forEach(function (d) {
       var btn = document.createElement('button');
       btn.type = 'button';
       btn.className = 'btn btn-ghost';
+
+      var hasSessions = sessions.some(function (s) {
+        if (!s.start_time) return false;
+        var start = new Date(s.start_time);
+        return sameDate(start, d) && start >= now;
+      });
+
       var label =
         d.toLocaleDateString(undefined, { weekday: 'short' }) +
         ' ' +
@@ -90,9 +99,17 @@
         btn.classList.remove('btn-ghost');
         btn.classList.add('btn-primary');
       }
-      btn.addEventListener('click', function () {
-        onSelect(d);
-      });
+
+      if (!hasSessions) {
+        btn.disabled = true;
+        btn.style.opacity = '0.5';
+        btn.style.cursor = 'not-allowed';
+        btn.title = 'No sessions on this day';
+      } else {
+        btn.addEventListener('click', function () {
+          onSelect(d);
+        });
+      }
       bar.appendChild(btn);
     });
   }
@@ -103,7 +120,6 @@
       if (!s.start_time) return false;
       var start = new Date(s.start_time);
       if (start < now) {
-        // Hide expired sessions (past now).
         return false;
       }
       return sameDate(start, date);
@@ -187,11 +203,24 @@
     }
 
     var allSessions = [];
-    var dates = buildDateRange(7);
-    var activeDate = dates[0];
+    var activeDate = new Date();
+    activeDate = new Date(activeDate.getFullYear(), activeDate.getMonth(), activeDate.getDate());
 
     function refresh() {
-      renderDateSelector(dates, activeDate, function (d) {
+      var displayDates = buildDateRange(7);
+
+      allSessions.forEach(function (s) {
+        if (!s.start_time) return;
+        var d = new Date(s.start_time);
+        var day = new Date(d.getFullYear(), d.getMonth(), d.getDate());
+        if (day >= displayDates[0]) {
+          var exists = displayDates.some(function (existing) { return sameDate(existing, day); });
+          if (!exists) displayDates.push(day);
+        }
+      });
+      displayDates.sort(function (a, b) { return a - b; });
+
+      renderDateSelector(displayDates, activeDate, allSessions, function (d) {
         activeDate = d;
         refresh();
       });

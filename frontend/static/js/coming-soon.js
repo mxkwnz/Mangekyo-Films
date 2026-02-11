@@ -97,10 +97,6 @@
             img.src = m.poster_url || '';
             img.alt = m.name || 'Movie poster';
 
-            // LCP Optimization:
-            // 1. High priority for first 2 items
-            // 2. Lazy loading for the rest
-            // 3. Explicit dimensions
             if (filtered.indexOf(m) < 2) {
                 img.setAttribute('fetchpriority', 'high');
             } else {
