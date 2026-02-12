@@ -729,7 +729,7 @@ SOFTWARE.
 ## Contact
 
 **Team Members**
-- Mukhammedali Kalen - Project Lead, Backend Developer
+- Mukhammedali Kalen - Backend Developer
 - Shyngys Abdullaev - Backend Developer
 - Alikhan Orynbasarov - Backend Developer
 
